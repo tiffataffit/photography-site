@@ -403,7 +403,7 @@
   <div id="drop-zone">
     <input type="file" id="file-input" accept="image/*" multiple>
     <p>Drag &amp; drop photos here, or click to browse</p>
-    <small>JPG, PNG, WEBP &mdash; all photos will share the batch details above</small>
+    <small>JPG, PNG, WEBP &mdash; all photos will be converted to JPEG before saving</small>
   </div>
   <div id="preview-grid"></div>
 </div>
@@ -510,6 +510,26 @@
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9._-]/g, '')
       .replace(/^-+|-+$/g, '');
+  }
+
+  async function convertToJpeg(file, quality = 0.88) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob);
+          else reject(new Error('Canvas JPEG conversion failed'));
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image failed to load')); };
+      img.src = url;
+    });
   }
 
   function addFiles(files) {
@@ -620,24 +640,22 @@
       for (let i = 0; i < pendingFiles.length; i++) {
         const { file, caption } = pendingFiles[i];
 
-        // Build a unique filename: date-prefix + sanitized original name
-        let baseName = sanitizeFilename(file.name);
-        // Ensure it has an extension
-        if (!baseName.includes('.')) baseName += '.jpg';
+        // Build a unique filename: sanitized original name, always .jpg
+        const stem = sanitizeFilename(file.name).replace(/\.[^.]+$/, '') || `photo-${i}`;
+        let finalName = stem + '.jpg';
 
         // Avoid collisions with existing files
-        let finalName = baseName;
         const existingNames = new Set(existing.map(p => p.filename));
         if (existingNames.has(finalName)) {
-          const ext = finalName.includes('.') ? finalName.split('.').pop() : 'jpg';
-          const stem = finalName.replace(/\.[^.]+$/, '');
-          finalName = `${stem}-${Date.now()}-${i}.${ext}`;
+          finalName = `${stem}-${Date.now()}-${i}.jpg`;
         }
 
-        // Write image file
+        // Convert to JPEG and write
+        setStatus(`Converting ${i + 1} of ${pendingFiles.length}…`);
+        const jpeg = await convertToJpeg(file);
         const fileHandle = await photosDir.getFileHandle(finalName, { create: true });
         const writable = await fileHandle.createWritable();
-        await writable.write(file);
+        await writable.write(jpeg);
         await writable.close();
 
         const entry = { filename: finalName, location, country, date };
