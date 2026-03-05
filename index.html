@@ -80,7 +80,9 @@
 
     /* ── About ── */
     #tab-about {
-      padding: 3.5rem 2rem 5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3.5rem 3rem 5rem;
     }
 
     .about-layout {
@@ -222,10 +224,10 @@
     }
 
     .photo-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 1px;
-      background: var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      background: var(--bg);
     }
 
     .photo-item {
@@ -233,7 +235,10 @@
       overflow: hidden;
       background: var(--bg);
       cursor: pointer;
-      aspect-ratio: 3 / 2;
+      height: 220px;
+      flex-grow: 1;
+      flex-shrink: 0;
+      flex-basis: 330px; /* default before aspect ratio loads */
     }
 
     .photo-item img {
@@ -436,17 +441,13 @@
     }
 
     /* ── Responsive ── */
-    @media (max-width: 1100px) {
-      .photo-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-
     @media (max-width: 900px) {
-      .photo-grid { grid-template-columns: repeat(3, 1fr); }
+      .photo-item { height: 180px; flex-basis: 270px; }
       #grid { margin: 0 1rem 3rem; }
     }
 
     @media (max-width: 560px) {
-      .photo-grid { grid-template-columns: repeat(2, 1fr); }
+      .photo-item { height: 140px; flex-basis: 210px; }
       #grid { margin: 0 0 3rem; }
       #photo-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
       header { padding: 2rem 1rem 0; }
@@ -632,6 +633,8 @@
     img.alt = photo.caption || photo.location || '';
     img.loading = 'lazy';
     img.addEventListener('load', () => {
+      const aspect = img.naturalWidth / img.naturalHeight;
+      item.style.flexBasis = `${item.offsetHeight * aspect}px`;
       img.classList.add('loaded');
       placeholder.style.display = 'none';
     });
@@ -702,6 +705,11 @@
         const photoGrid = document.createElement('div');
         photoGrid.className = 'photo-grid';
         items.forEach(({ photo, i }) => photoGrid.appendChild(makePhotoItem(photo, i)));
+        // Spacer absorbs leftover space in the last row so orphan images don't over-stretch
+        const spacer = document.createElement('div');
+        spacer.style.flexGrow = '100';
+        spacer.style.flexShrink = '0';
+        photoGrid.appendChild(spacer);
         locSection.appendChild(photoGrid);
         monthSection.appendChild(locSection);
       });
