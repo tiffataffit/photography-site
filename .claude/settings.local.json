@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(/opt/homebrew/bin/gh auth:*)",
+      "Bash(/opt/homebrew/bin/gh run:*)",
+      "Bash(open:*)",
+      "Bash(/opt/homebrew/bin/gh:*)",
+      "Bash(curl:*)"
+    ]
+  }
+}
