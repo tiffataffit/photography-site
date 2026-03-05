@@ -283,12 +283,36 @@
 
     /* ── Projects ── */
     #tab-projects {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 3.5rem 2rem 5rem;
-      color: var(--text-muted);
-      font-style: italic;
-      font-size: 0.95rem;
+      padding: 2.5rem 2rem 5rem;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      max-width: 900px;
+    }
+
+    .project-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .project-img-placeholder {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: var(--border);
+    }
+
+    .project-title {
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+
+    @media (max-width: 700px) {
+      .projects-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
     /* ── Lightbox ── */
@@ -479,7 +503,16 @@
 
 <!-- Projects -->
 <div id="tab-projects" class="tab-panel">
-  More to come.
+  <div class="projects-grid">
+    <div class="project-card">
+      <div class="project-img-placeholder"></div>
+      <div class="project-title">Synesthesia Simulator</div>
+    </div>
+    <div class="project-card">
+      <div class="project-img-placeholder"></div>
+      <div class="project-title">Curious Thoughtful</div>
+    </div>
+  </div>
 </div>
 
 <!-- Lightbox -->
