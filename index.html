@@ -80,19 +80,43 @@
 
     /* ── About ── */
     #tab-about {
-      max-width: 640px;
+      max-width: 900px;
       margin: 0 auto;
       padding: 3.5rem 2rem 5rem;
     }
 
-    #tab-about p {
+    .about-layout {
+      display: flex;
+      gap: 3.5rem;
+      align-items: flex-start;
+    }
+
+    .about-image {
+      flex-shrink: 0;
+      width: 260px;
+    }
+
+    .about-image img {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    .about-text p {
       font-size: 1.05rem;
       line-height: 1.85;
       color: var(--text);
       margin-bottom: 1.4rem;
     }
 
-    #tab-about p:last-child { margin-bottom: 0; }
+    .about-text p:last-child { margin-bottom: 0; }
+
+    @media (max-width: 700px) {
+      .about-layout { flex-direction: column; gap: 2rem; }
+      .about-image { width: 100%; max-width: 280px; }
+    }
 
     /* ── Photography ── */
     #tab-photography { padding-top: 2rem; }
@@ -366,10 +390,15 @@
 
 <!-- About -->
 <div id="tab-about" class="tab-panel active">
-  <p>I'm a lifelong tinkerer who somehow built a fairly traditional career in tech &mdash; I've spent the past several years as a product manager, which turns out to be a surprisingly good fit for someone who grew up being called "10,000 Questions." Curiosity has always been my default mode. (I'm a solidly "blue" on the color personality test, which means there's a good chance I'll ask you how you feel about things.)</p>
-  <p>I grew up in New York surrounded by creative people, always drawn to spaces where things were being made &mdash; even when I didn't think of myself as a maker. I've loved photography and garments since high school, and over the years I've collected jewelry and ceramics from all over the world: objects made by hand, often in places I've traveled.</p>
-  <p>The more I've sat with those interests, the more I think they come from the same impulse &mdash; curiosity about people, and about how small creative choices or stories can shift how we see or feel about ourselves, and in turn change how we show up.</p>
-  <p>I'm coming to ITP Camp to reconnect the tinkerer side with the career side, to learn new trades, and to spend time with other curious people building thoughtful things. If you want to talk about what you're making &mdash; or how you feel about things &mdash; I'm always in for that conversation.</p>
+  <div class="about-layout">
+    <div class="about-image">
+      <img src="IMG_6900.jpeg" alt="">
+    </div>
+    <div class="about-text">
+      <p>I'm a lifelong tinkerer who built a career in tech as a product manager &mdash; which turns out to be a natural home for someone who grew up being called "10,000 Questions." I've spent years translating between what's technically possible and what people actually need, working across engineers, designers, and stakeholders who speak very different languages. I grew up in New York surrounded by creative people, always drawn to spaces where things were being made, even when I didn't think of myself as one of the makers.</p>
+      <p>The creative pull has never gone away. I've loved photography and garments since high school, and I collect jewelry and ceramics from everywhere I travel &mdash; objects made by hand, usually with a story attached. The more I've sat with those interests, the more I've realized they come from the same place: curiosity about people, and about how small creative choices can shift how we see ourselves and show up in the world. I think a lot about what it looks like when new tools meet that instinct &mdash; and who gets to be in the room when it happens.</p>
+    </div>
+  </div>
 </div>
 
 <!-- Photography -->
