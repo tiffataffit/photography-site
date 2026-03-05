@@ -102,6 +102,8 @@
       object-fit: cover;
       object-position: center top;
       display: block;
+      border-radius: 4px;
+      box-shadow: 0 4px 18px rgba(28, 25, 22, 0.18), 0 1px 4px rgba(28, 25, 22, 0.08);
     }
 
     .about-text p {
@@ -112,25 +114,6 @@
     }
 
     .about-text p:last-child { margin-bottom: 0; }
-
-    .email-btn {
-      display: inline-block;
-      margin-top: 1.75rem;
-      padding: 0.5rem 1.25rem;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-family: inherit;
-      font-size: 0.78rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      text-decoration: none;
-      transition: border-color 0.2s, color 0.2s;
-    }
-
-    .email-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
 
     @media (max-width: 700px) {
       .about-layout { flex-direction: column; gap: 2rem; }
@@ -144,7 +127,7 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      padding: 0.75rem 2rem;
+      padding: 0.35rem 2rem;
     }
 
     #filters {
@@ -432,13 +415,25 @@
 
     /* ── Footer ── */
     footer {
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
       padding: 2rem;
       border-top: 1px solid var(--border);
       font-size: 0.75rem;
       color: var(--text-muted);
       letter-spacing: 0.05em;
     }
+
+    #email-link {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+
+    #email-link:hover { color: var(--accent); }
 
     /* ── Responsive ── */
     @media (max-width: 900px) {
@@ -477,7 +472,6 @@
     <div class="about-text">
       <p>I'm a lifelong tinkerer who built a career in tech as a product manager - which turns out to be a natural home for someone who grew up with the nickname "10,000 questions." I've spent years translating between what's technically possible and what people actually need, working across engineers, designers, and stakeholders who speak very different languages. I grew up in New York surrounded by creative people, always drawn to spaces where things were being made, even when I didn't think of myself as one of the makers.</p>
       <p>The creative pull has never gone away. I've loved photography and garments since high school, and I collect jewelry and ceramics from everywhere I travel - objects made by hand, usually with a story attached. The more I've sat with those interests, the more I've realized they come from the same place: curiosity about people, and about how small creative choices can shift how we see ourselves and show up in the world. I think a lot about what it looks like when new tools meet that instinct - and who gets to be in the room when it happens.</p>
-      <a href="mailto:tiffanydw17@gmail.com" class="email-btn">Email</a>
     </div>
   </div>
 </div>
@@ -542,7 +536,13 @@
 </div>
 
 <footer>
-  &copy; <span id="year"></span>
+  <span>&copy; <span id="year"></span></span>
+  <a href="mailto:tiffanydw17@gmail.com" id="email-link" aria-label="Email">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <path d="m2 7 10 7 10-7"/>
+    </svg>
+  </a>
 </footer>
 
 <script>
