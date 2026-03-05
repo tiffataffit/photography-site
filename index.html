@@ -94,6 +94,7 @@
     .about-image {
       flex-shrink: 0;
       width: 260px;
+      position: relative;
     }
 
     .about-image img {
@@ -103,7 +104,17 @@
       object-position: center top;
       display: block;
       border-radius: 4px;
-      box-shadow: 0 4px 18px rgba(28, 25, 22, 0.18), 0 1px 4px rgba(28, 25, 22, 0.08);
+    }
+
+    .about-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      background:
+        linear-gradient(to right, var(--bg) 0%, transparent 18%, transparent 82%, var(--bg) 100%),
+        linear-gradient(to bottom, var(--bg) 0%, transparent 12%, transparent 82%, var(--bg) 100%);
+      pointer-events: none;
     }
 
     .about-text p {
@@ -301,6 +312,7 @@
       width: 100%;
       aspect-ratio: 4 / 3;
       background: var(--border);
+      border-radius: 4px;
     }
 
     .project-img {
@@ -309,12 +321,21 @@
       object-fit: cover;
       object-position: top;
       display: block;
+      border-radius: 4px;
     }
 
     .project-title {
       font-size: 0.9rem;
       letter-spacing: 0.04em;
       color: var(--text);
+    }
+
+    .project-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-style: italic;
+      line-height: 1.5;
+      margin-top: -0.25rem;
     }
 
     a.project-card {
@@ -537,6 +558,7 @@
     <a class="project-card" href="https://claude.ai/public/artifacts/e44fdb3c-ba5b-4d7b-9ebf-c3ce6dd8b222" target="_blank" rel="noopener">
       <img class="project-img" src="curious-thoughtful-preview.jpg" alt="Curious Thoughtful">
       <div class="project-title">Curious Thoughtful</div>
+      <div class="project-desc">Discussing what fulfillment means to ordinary people</div>
     </a>
   </div>
 </div>
