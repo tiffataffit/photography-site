@@ -1,45 +1,5 @@
 [
   {
-    "filename": "example-1.jpg",
-    "caption": "Golden hour over the Seine",
-    "location": "Paris, France",
-    "country": "France",
-    "date": "2024-09"
-  },
-  {
-    "filename": "example-2.jpg",
-    "caption": "Morning fog in the mountains",
-    "location": "Chamonix, France",
-    "country": "France",
-    "date": "2024-08"
-  },
-  {
-    "filename": "example-3.jpg",
-    "location": "Kyoto, Japan",
-    "country": "Japan",
-    "date": "2024-04"
-  },
-  {
-    "filename": "example-4.jpg",
-    "caption": "Bamboo grove at dusk",
-    "location": "Arashiyama, Japan",
-    "country": "Japan",
-    "date": "2024-04"
-  },
-  {
-    "filename": "example-5.jpg",
-    "caption": "Colosseum at sunrise",
-    "location": "Rome, Italy",
-    "country": "Italy",
-    "date": "2024-06"
-  },
-  {
-    "filename": "example-6.jpg",
-    "location": "Amalfi Coast, Italy",
-    "country": "Italy",
-    "date": "2024-06"
-  },
-  {
     "filename": "p9305189.png",
     "location": "Lencois Maranhenses",
     "country": "Brazil",
