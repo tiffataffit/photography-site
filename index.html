@@ -121,12 +121,25 @@
     /* ── Photography ── */
     #tab-photography { padding-top: 2rem; }
 
+    #photo-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 2rem;
+    }
+
+    #photo-title {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
     #filters {
       display: flex;
       gap: 1.25rem;
-      justify-content: flex-end;
       flex-wrap: wrap;
-      padding: 0.75rem 2rem;
+      align-items: center;
     }
 
     .filter-group {
@@ -166,13 +179,43 @@
       color: var(--text);
     }
 
-    /* ── Grid ── */
+    /* ── Timeline ── */
     #grid {
+      margin: 0 2rem 4rem;
+    }
+
+    .month-section {
+      margin-bottom: 3rem;
+    }
+
+    .month-heading {
+      font-size: 1rem;
+      font-weight: normal;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+
+    .location-section {
+      margin-bottom: 1.75rem;
+    }
+
+    .location-heading {
+      font-size: 0.78rem;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.03em;
+    }
+
+    .photo-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 1px;
       background: var(--border);
-      margin: 0 2rem 4rem;
     }
 
     .photo-item {
@@ -360,19 +403,21 @@
 
     /* ── Responsive ── */
     @media (max-width: 1100px) {
-      #grid { grid-template-columns: repeat(4, 1fr); }
+      .photo-grid { grid-template-columns: repeat(4, 1fr); }
     }
 
     @media (max-width: 900px) {
-      #grid { grid-template-columns: repeat(3, 1fr); margin: 0 1rem 3rem; }
+      .photo-grid { grid-template-columns: repeat(3, 1fr); }
+      #grid { margin: 0 1rem 3rem; }
     }
 
     @media (max-width: 560px) {
-      #grid { grid-template-columns: repeat(2, 1fr); margin: 0 0 3rem; }
+      .photo-grid { grid-template-columns: repeat(2, 1fr); }
+      #grid { margin: 0 0 3rem; }
+      #photo-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
       header { padding: 2rem 1rem 0; }
       header h1 { font-size: 1.3rem; }
       nav button { padding: 0.6rem 1.1rem; }
-      #filters { padding: 0 1rem 1.5rem; }
       .lb-nav { font-size: 1.5rem; padding: 0.75rem; }
     }
   </style>
@@ -395,14 +440,16 @@
       <img src="IMG_6900.jpeg" alt="">
     </div>
     <div class="about-text">
-      <p>I'm a lifelong tinkerer who built a career in tech as a product manager &mdash; which turns out to be a natural home for someone who grew up being called "10,000 Questions." I've spent years translating between what's technically possible and what people actually need, working across engineers, designers, and stakeholders who speak very different languages. I grew up in New York surrounded by creative people, always drawn to spaces where things were being made, even when I didn't think of myself as one of the makers.</p>
-      <p>The creative pull has never gone away. I've loved photography and garments since high school, and I collect jewelry and ceramics from everywhere I travel &mdash; objects made by hand, usually with a story attached. The more I've sat with those interests, the more I've realized they come from the same place: curiosity about people, and about how small creative choices can shift how we see ourselves and show up in the world. I think a lot about what it looks like when new tools meet that instinct &mdash; and who gets to be in the room when it happens.</p>
+      <p>I'm a lifelong tinkerer who built a career in tech as a product manager - which turns out to be a natural home for someone who grew up with the nickname "10,000 questions." I've spent years translating between what's technically possible and what people actually need, working across engineers, designers, and stakeholders who speak very different languages. I grew up in New York surrounded by creative people, always drawn to spaces where things were being made, even when I didn't think of myself as one of the makers.</p>
+      <p>The creative pull has never gone away. I've loved photography and garments since high school, and I collect jewelry and ceramics from everywhere I travel - objects made by hand, usually with a story attached. The more I've sat with those interests, the more I've realized they come from the same place: curiosity about people, and about how small creative choices can shift how we see ourselves and show up in the world. I think a lot about what it looks like when new tools meet that instinct - and who gets to be in the room when it happens.</p>
     </div>
   </div>
 </div>
 
 <!-- Photography -->
 <div id="tab-photography" class="tab-panel">
+  <div id="photo-header">
+  <span id="photo-title">Memories from where I've been</span>
   <div id="filters">
     <div class="filter-group">
       <label for="filter-country">Country</label>
@@ -422,6 +469,7 @@
         <option value="">All</option>
       </select>
     </div>
+  </div>
   </div>
 
   <div id="grid">
@@ -519,10 +567,59 @@
     renderGrid();
   }
 
+  function formatMonthYear(dateStr) {
+    if (!dateStr) return 'Unknown';
+    const [year, month] = dateStr.split('-');
+    return new Date(Number(year), Number(month) - 1, 1)
+      .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  function makePhotoItem(photo, flatIndex) {
+    const item = document.createElement('div');
+    item.className = 'photo-item';
+    item.setAttribute('role', 'button');
+    item.setAttribute('tabindex', '0');
+    item.setAttribute('aria-label', photo.caption || photo.location || `Photo ${flatIndex + 1}`);
+
+    const placeholder = document.createElement('div');
+    placeholder.className = 'photo-placeholder';
+
+    const img = document.createElement('img');
+    img.src = `photos/${photo.filename}`;
+    img.alt = photo.caption || photo.location || '';
+    img.loading = 'lazy';
+    img.addEventListener('load', () => {
+      img.classList.add('loaded');
+      placeholder.style.display = 'none';
+    });
+    img.addEventListener('error', () => {
+      placeholder.style.background = 'var(--bg-card)';
+      placeholder.style.animation = 'none';
+    });
+
+    const overlay = document.createElement('div');
+    overlay.className = 'photo-overlay';
+    if (photo.caption) {
+      const cap = document.createElement('div');
+      cap.className = 'photo-caption';
+      cap.textContent = photo.caption;
+      overlay.appendChild(cap);
+    }
+
+    item.appendChild(placeholder);
+    item.appendChild(img);
+    item.appendChild(overlay);
+    item.addEventListener('click', () => openLightbox(flatIndex));
+    item.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(flatIndex); }
+    });
+    return item;
+  }
+
   function renderGrid() {
     const grid = document.getElementById('grid');
     const emptyState = document.getElementById('empty-state');
-    grid.querySelectorAll('.photo-item').forEach(el => el.remove());
+    grid.querySelectorAll('.month-section').forEach(el => el.remove());
 
     if (filteredPhotos.length === 0) {
       emptyState.style.display = 'block';
@@ -530,49 +627,43 @@
     }
     emptyState.style.display = 'none';
 
+    // Group by date then by "location, country"
+    const byDate = {};
     filteredPhotos.forEach((photo, i) => {
-      const item = document.createElement('div');
-      item.className = 'photo-item';
-      item.setAttribute('role', 'button');
-      item.setAttribute('tabindex', '0');
-      item.setAttribute('aria-label', photo.caption || photo.location || `Photo ${i + 1}`);
+      const date = photo.date || '';
+      const locKey = [photo.location, photo.country].filter(Boolean).join(', ');
+      if (!byDate[date]) byDate[date] = {};
+      if (!byDate[date][locKey]) byDate[date][locKey] = [];
+      byDate[date][locKey].push({ photo, i });
+    });
 
-      const placeholder = document.createElement('div');
-      placeholder.className = 'photo-placeholder';
+    // Render months in reverse chronological order
+    Object.keys(byDate).sort((a, b) => b.localeCompare(a)).forEach(date => {
+      const monthSection = document.createElement('div');
+      monthSection.className = 'month-section';
 
-      const img = document.createElement('img');
-      img.src = `photos/${photo.filename}`;
-      img.alt = photo.caption || photo.location || '';
-      img.loading = 'lazy';
-      img.addEventListener('load', () => {
-        img.classList.add('loaded');
-        placeholder.style.display = 'none';
-      });
-      img.addEventListener('error', () => {
-        placeholder.style.background = 'var(--bg-card)';
-        placeholder.style.animation = 'none';
-      });
+      const monthHeading = document.createElement('h2');
+      monthHeading.className = 'month-heading';
+      monthHeading.textContent = formatMonthYear(date);
+      monthSection.appendChild(monthHeading);
 
-      const overlay = document.createElement('div');
-      overlay.className = 'photo-overlay';
+      Object.entries(byDate[date]).forEach(([locKey, items]) => {
+        const locSection = document.createElement('div');
+        locSection.className = 'location-section';
 
-      if (photo.caption) {
-        const cap = document.createElement('div');
-        cap.className = 'photo-caption';
-        cap.textContent = photo.caption;
-        overlay.appendChild(cap);
-      }
+        const locHeading = document.createElement('h3');
+        locHeading.className = 'location-heading';
+        locHeading.textContent = locKey;
+        locSection.appendChild(locHeading);
 
-      item.appendChild(placeholder);
-      item.appendChild(img);
-      item.appendChild(overlay);
-
-      item.addEventListener('click', () => openLightbox(i));
-      item.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(i); }
+        const photoGrid = document.createElement('div');
+        photoGrid.className = 'photo-grid';
+        items.forEach(({ photo, i }) => photoGrid.appendChild(makePhotoItem(photo, i)));
+        locSection.appendChild(photoGrid);
+        monthSection.appendChild(locSection);
       });
 
-      grid.appendChild(item);
+      grid.appendChild(monthSection);
     });
   }
 
