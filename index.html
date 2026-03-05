@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photography</title>
+  <title>Tiffany</title>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -28,12 +28,10 @@
       min-height: 100vh;
     }
 
-    /* Header */
+    /* ── Header ── */
     header {
-      padding: 3rem 2rem 1.5rem;
+      padding: 3rem 2rem 0;
       text-align: center;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 2rem;
     }
 
     header h1 {
@@ -44,14 +42,60 @@
       color: var(--accent);
     }
 
-    header p {
-      margin-top: 0.5rem;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      font-style: italic;
+    /* ── Tab nav ── */
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-top: 2rem;
+      border-bottom: 1px solid var(--border);
     }
 
-    /* Filters */
+    nav button {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      padding: 0.65rem 1.75rem;
+      font-family: inherit;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    nav button:hover { color: var(--text); }
+
+    nav button.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── About ── */
+    #tab-about {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 3.5rem 2rem 5rem;
+    }
+
+    #tab-about p {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: var(--text);
+      margin-bottom: 1.4rem;
+    }
+
+    #tab-about p:last-child { margin-bottom: 0; }
+
+    /* ── Photography ── */
+    #tab-photography { padding-top: 2rem; }
+
     #filters {
       display: flex;
       gap: 1rem;
@@ -95,7 +139,7 @@
       border-color: var(--accent);
     }
 
-    /* Grid */
+    /* ── Grid ── */
     #grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -121,13 +165,8 @@
       opacity: 0;
     }
 
-    .photo-item img.loaded {
-      opacity: 1;
-    }
-
-    .photo-item:hover img {
-      transform: scale(1.03);
-    }
+    .photo-item img.loaded { opacity: 1; }
+    .photo-item:hover img { transform: scale(1.03); }
 
     .photo-overlay {
       position: absolute;
@@ -141,25 +180,14 @@
       padding: 1rem;
     }
 
-    .photo-item:hover .photo-overlay {
-      opacity: 1;
-    }
-
-    .photo-location {
-      color: #f4efe6;
-      font-size: 0.8rem;
-      letter-spacing: 0.06em;
-      font-style: italic;
-    }
+    .photo-item:hover .photo-overlay { opacity: 1; }
 
     .photo-caption {
       color: #e8e2d8;
       font-size: 0.75rem;
-      margin-top: 0.2rem;
       opacity: 0.85;
     }
 
-    /* Placeholder shimmer while loading */
     .photo-placeholder {
       position: absolute;
       inset: 0;
@@ -168,17 +196,11 @@
       animation: shimmer 1.5s infinite;
     }
 
-    .photo-item img.loaded ~ .photo-placeholder,
-    .photo-item img.loaded + .photo-placeholder {
-      display: none;
-    }
-
     @keyframes shimmer {
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
 
-    /* Empty state */
     #empty-state {
       display: none;
       grid-column: 1 / -1;
@@ -189,7 +211,17 @@
       background: var(--bg);
     }
 
-    /* Lightbox */
+    /* ── Projects ── */
+    #tab-projects {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 3.5rem 2rem 5rem;
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 0.95rem;
+    }
+
+    /* ── Lightbox ── */
     #lightbox {
       display: none;
       position: fixed;
@@ -201,9 +233,7 @@
       padding: 2rem;
     }
 
-    #lightbox.active {
-      display: flex;
-    }
+    #lightbox.active { display: flex; }
 
     #lightbox-img-wrap {
       position: relative;
@@ -243,7 +273,6 @@
       margin-top: 0.25rem;
     }
 
-    /* Nav arrows */
     .lb-nav {
       position: fixed;
       top: 50%;
@@ -292,7 +321,7 @@
       font-style: italic;
     }
 
-    /* Footer */
+    /* ── Footer ── */
     footer {
       text-align: center;
       padding: 2rem;
@@ -302,7 +331,7 @@
       letter-spacing: 0.05em;
     }
 
-    /* Responsive */
+    /* ── Responsive ── */
     @media (max-width: 1100px) {
       #grid { grid-template-columns: repeat(4, 1fr); }
     }
@@ -313,8 +342,9 @@
 
     @media (max-width: 560px) {
       #grid { grid-template-columns: repeat(2, 1fr); margin: 0 0 3rem; }
-      header { padding: 2rem 1rem 1.25rem; }
+      header { padding: 2rem 1rem 0; }
       header h1 { font-size: 1.3rem; }
+      nav button { padding: 0.6rem 1.1rem; }
       #filters { padding: 0 1rem 1.5rem; }
       .lb-nav { font-size: 1.5rem; padding: 0.75rem; }
     }
@@ -323,34 +353,53 @@
 <body>
 
 <header>
-  <h1>Photography</h1>
-  <p id="header-subtitle">Places &amp; moments</p>
+  <h1>Tiffany</h1>
+  <nav>
+    <button class="tab-btn active" data-tab="about">About</button>
+    <button class="tab-btn" data-tab="photography">Photography</button>
+    <button class="tab-btn" data-tab="projects">Projects</button>
+  </nav>
 </header>
 
-<div id="filters">
-  <div class="filter-group">
-    <label for="filter-country">Country</label>
-    <select id="filter-country">
-      <option value="">All</option>
-    </select>
+<!-- About -->
+<div id="tab-about" class="tab-panel active">
+  <p>I'm a lifelong tinkerer who somehow built a fairly traditional career in tech &mdash; I've spent the past several years as a product manager, which turns out to be a surprisingly good fit for someone who grew up being called "10,000 Questions." Curiosity has always been my default mode. (I'm a solidly "blue" on the color personality test, which means there's a good chance I'll ask you how you feel about things.)</p>
+  <p>I grew up in New York surrounded by creative people, always drawn to spaces where things were being made &mdash; even when I didn't think of myself as a maker. I've loved photography and garments since high school, and over the years I've collected jewelry and ceramics from all over the world: objects made by hand, often in places I've traveled.</p>
+  <p>The more I've sat with those interests, the more I think they come from the same impulse &mdash; curiosity about people, and about how small creative choices or stories can shift how we see or feel about ourselves, and in turn change how we show up.</p>
+  <p>I'm coming to ITP Camp to reconnect the tinkerer side with the career side, to learn new trades, and to spend time with other curious people building thoughtful things. If you want to talk about what you're making &mdash; or how you feel about things &mdash; I'm always in for that conversation.</p>
+</div>
+
+<!-- Photography -->
+<div id="tab-photography" class="tab-panel">
+  <div id="filters">
+    <div class="filter-group">
+      <label for="filter-country">Country</label>
+      <select id="filter-country">
+        <option value="">All</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-month">Month</label>
+      <select id="filter-month">
+        <option value="">All</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-year">Year</label>
+      <select id="filter-year">
+        <option value="">All</option>
+      </select>
+    </div>
   </div>
-  <div class="filter-group">
-    <label for="filter-month">Month</label>
-    <select id="filter-month">
-      <option value="">All</option>
-    </select>
-  </div>
-  <div class="filter-group">
-    <label for="filter-year">Year</label>
-    <select id="filter-year">
-      <option value="">All</option>
-    </select>
+
+  <div id="grid">
+    <div id="empty-state">No photos match the selected filters.</div>
   </div>
 </div>
 
-
-<div id="grid">
-  <div id="empty-state">No photos match the selected filters.</div>
+<!-- Projects -->
+<div id="tab-projects" class="tab-panel">
+  More to come.
 </div>
 
 <!-- Lightbox -->
@@ -375,22 +424,24 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 
+  // ── Tabs ──
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+
+  function showTab(id) {
+    tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+    tabPanels.forEach(p => p.classList.toggle('active', p.id === `tab-${id}`));
+    // Load photos when photography tab first becomes visible
+    if (id === 'photography' && !photosLoaded) loadPhotos();
+  }
+
+  tabBtns.forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
+
+  // ── Photography ──
   let allPhotos = [];
   let filteredPhotos = [];
   let lbIndex = 0;
-
-  // Format "2024-09" -> "September 2024"
-  function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const [year, month] = dateStr.split('-');
-    const d = new Date(Number(year), Number(month) - 1, 1);
-    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  }
-
-  // Sort "2024-09" strings descending
-  function sortDates(a, b) {
-    return b.localeCompare(a);
-  }
+  let photosLoaded = false;
 
   function populateFilters() {
     const countries = [...new Set(allPhotos.map(p => p.country).filter(Boolean))].sort();
@@ -401,8 +452,7 @@
     const countryEl = document.getElementById('filter-country');
     countries.forEach(c => {
       const opt = document.createElement('option');
-      opt.value = c;
-      opt.textContent = c;
+      opt.value = c; opt.textContent = c;
       countryEl.appendChild(opt);
     });
 
@@ -417,8 +467,7 @@
     const yearEl = document.getElementById('filter-year');
     years.forEach(y => {
       const opt = document.createElement('option');
-      opt.value = y;
-      opt.textContent = y;
+      opt.value = y; opt.textContent = y;
       yearEl.appendChild(opt);
     });
   }
@@ -441,8 +490,6 @@
   function renderGrid() {
     const grid = document.getElementById('grid');
     const emptyState = document.getElementById('empty-state');
-
-    // Remove existing photo items
     grid.querySelectorAll('.photo-item').forEach(el => el.remove());
 
     if (filteredPhotos.length === 0) {
@@ -497,7 +544,23 @@
     });
   }
 
-  // Lightbox
+  function loadPhotos() {
+    fetch('photos.json')
+      .then(r => r.json())
+      .then(data => {
+        allPhotos = data;
+        photosLoaded = true;
+        populateFilters();
+        applyFilters();
+      })
+      .catch(err => console.error('Could not load photos.json:', err));
+  }
+
+  document.getElementById('filter-country').addEventListener('change', applyFilters);
+  document.getElementById('filter-month').addEventListener('change', applyFilters);
+  document.getElementById('filter-year').addEventListener('change', applyFilters);
+
+  // ── Lightbox ──
   function openLightbox(index) {
     lbIndex = index;
     showLightboxPhoto();
@@ -517,19 +580,11 @@
     img.alt = photo.caption || photo.location || '';
     document.getElementById('lightbox-location').textContent = photo.location || '';
     document.getElementById('lightbox-caption').textContent = photo.caption || '';
-    document.getElementById('lb-counter').textContent =
-      `${lbIndex + 1} / ${filteredPhotos.length}`;
+    document.getElementById('lb-counter').textContent = `${lbIndex + 1} / ${filteredPhotos.length}`;
   }
 
-  function lbNext() {
-    lbIndex = (lbIndex + 1) % filteredPhotos.length;
-    showLightboxPhoto();
-  }
-
-  function lbPrev() {
-    lbIndex = (lbIndex - 1 + filteredPhotos.length) % filteredPhotos.length;
-    showLightboxPhoto();
-  }
+  function lbNext() { lbIndex = (lbIndex + 1) % filteredPhotos.length; showLightboxPhoto(); }
+  function lbPrev() { lbIndex = (lbIndex - 1 + filteredPhotos.length) % filteredPhotos.length; showLightboxPhoto(); }
 
   document.getElementById('lb-close').addEventListener('click', closeLightbox);
   document.getElementById('lb-next').addEventListener('click', lbNext);
@@ -546,23 +601,6 @@
     if (e.key === 'ArrowRight') lbNext();
     if (e.key === 'ArrowLeft') lbPrev();
   });
-
-  document.getElementById('filter-country').addEventListener('change', applyFilters);
-  document.getElementById('filter-month').addEventListener('change', applyFilters);
-  document.getElementById('filter-year').addEventListener('change', applyFilters);
-
-  // Load photos
-  fetch('photos.json')
-    .then(r => r.json())
-    .then(data => {
-      allPhotos = data;
-      populateFilters();
-      applyFilters();
-    })
-    .catch(err => {
-      console.error('Could not load photos.json:', err);
-      console.error('Could not load photos.');
-    });
 </script>
 </body>
 </html>
