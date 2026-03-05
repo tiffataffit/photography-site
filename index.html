@@ -95,16 +95,6 @@
       border-color: var(--accent);
     }
 
-    /* Stats line */
-    #stats {
-      text-align: center;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      font-style: italic;
-      margin-bottom: 1.5rem;
-      letter-spacing: 0.03em;
-    }
-
     /* Grid */
     #grid {
       display: grid;
@@ -442,16 +432,6 @@
     });
 
     renderGrid();
-    updateStats();
-  }
-
-  function updateStats() {
-    const el = document.getElementById('stats');
-    if (filteredPhotos.length === allPhotos.length) {
-      el.textContent = `${allPhotos.length} photo${allPhotos.length !== 1 ? 's' : ''}`;
-    } else {
-      el.textContent = `${filteredPhotos.length} of ${allPhotos.length} photos`;
-    }
   }
 
   function renderGrid() {
@@ -577,7 +557,7 @@
     })
     .catch(err => {
       console.error('Could not load photos.json:', err);
-      document.getElementById('stats').textContent = 'Could not load photos.';
+      console.error('Could not load photos.');
     });
 </script>
 </body>
