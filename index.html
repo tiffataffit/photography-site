@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photography</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #f4efe6;
+      --bg-card: #ede8de;
+      --text: #1c1916;
+      --text-muted: #6b6358;
+      --border: #d4ccbe;
+      --accent: #3d352b;
+      --lightbox-bg: rgba(20, 17, 13, 0.92);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      padding: 3rem 2rem 1.5rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: normal;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* Filters */
+    #filters {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 0 2rem 2rem;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .filter-group label {
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    select {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.4rem 1.8rem 0.4rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      border-radius: 2px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6358'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.6rem center;
+      transition: border-color 0.2s;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Stats line */
+    #stats {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.03em;
+    }
+
+    /* Grid */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      margin: 0 2rem 4rem;
+    }
+
+    .photo-item {
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-card);
+      cursor: pointer;
+      aspect-ratio: 3 / 2;
+    }
+
+    .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    .photo-item img.loaded {
+      opacity: 1;
+    }
+
+    .photo-item:hover img {
+      transform: scale(1.03);
+    }
+
+    .photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(20,17,13,0.6) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 1rem;
+    }
+
+    .photo-item:hover .photo-overlay {
+      opacity: 1;
+    }
+
+    .photo-location {
+      color: #f4efe6;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      font-style: italic;
+    }
+
+    .photo-caption {
+      color: #e8e2d8;
+      font-size: 0.75rem;
+      margin-top: 0.2rem;
+      opacity: 0.85;
+    }
+
+    /* Placeholder shimmer while loading */
+    .photo-placeholder {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, var(--bg-card) 25%, var(--border) 50%, var(--bg-card) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .photo-item img.loaded ~ .photo-placeholder,
+    .photo-item img.loaded + .photo-placeholder {
+      display: none;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Empty state */
+    #empty-state {
+      display: none;
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+      font-style: italic;
+      background: var(--bg);
+    }
+
+    /* Lightbox */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--lightbox-bg);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    #lightbox.active {
+      display: flex;
+    }
+
+    #lightbox-img-wrap {
+      position: relative;
+      max-width: 90vw;
+      max-height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #lightbox-img {
+      max-width: 90vw;
+      max-height: 80vh;
+      object-fit: contain;
+      display: block;
+      border: none;
+    }
+
+    #lightbox-info {
+      position: absolute;
+      bottom: -3.5rem;
+      left: 0;
+      right: 0;
+      text-align: center;
+    }
+
+    #lightbox-location {
+      color: #c8bfb2;
+      font-size: 0.85rem;
+      font-style: italic;
+      letter-spacing: 0.05em;
+    }
+
+    #lightbox-caption {
+      color: #9a9188;
+      font-size: 0.78rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Nav arrows */
+    .lb-nav {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #c8bfb2;
+      font-size: 2rem;
+      cursor: pointer;
+      padding: 1rem;
+      line-height: 1;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+      user-select: none;
+      z-index: 1001;
+    }
+
+    .lb-nav:hover { opacity: 1; }
+    #lb-prev { left: 1rem; }
+    #lb-next { right: 1rem; }
+
+    #lb-close {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      color: #c8bfb2;
+      font-size: 1.5rem;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+      z-index: 1001;
+      line-height: 1;
+    }
+
+    #lb-close:hover { opacity: 1; }
+
+    #lb-counter {
+      position: fixed;
+      top: 1.35rem;
+      left: 1.5rem;
+      color: #7a7168;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      font-style: italic;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      #grid { grid-template-columns: repeat(2, 1fr); margin: 0 1rem 3rem; }
+    }
+
+    @media (max-width: 560px) {
+      #grid { grid-template-columns: 1fr; margin: 0 0 3rem; }
+      header { padding: 2rem 1rem 1.25rem; }
+      header h1 { font-size: 1.3rem; }
+      #filters { padding: 0 1rem 1.5rem; }
+      .lb-nav { font-size: 1.5rem; padding: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Photography</h1>
+  <p id="header-subtitle">Places &amp; moments</p>
+</header>
+
+<div id="filters">
+  <div class="filter-group">
+    <label for="filter-country">Country</label>
+    <select id="filter-country">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="filter-date">Month</label>
+    <select id="filter-date">
+      <option value="">All</option>
+    </select>
+  </div>
+</div>
+
+<div id="stats"></div>
+
+<div id="grid">
+  <div id="empty-state">No photos match the selected filters.</div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <button id="lb-close" aria-label="Close">&times;</button>
+  <span id="lb-counter"></span>
+  <button class="lb-nav" id="lb-prev" aria-label="Previous">&#8592;</button>
+  <div id="lightbox-img-wrap">
+    <img id="lightbox-img" src="" alt="">
+    <div id="lightbox-info">
+      <div id="lightbox-location"></div>
+      <div id="lightbox-caption"></div>
+    </div>
+  </div>
+  <button class="lb-nav" id="lb-next" aria-label="Next">&#8594;</button>
+</div>
+
+<footer>
+  &copy; <span id="year"></span>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  let allPhotos = [];
+  let filteredPhotos = [];
+  let lbIndex = 0;
+
+  // Format "2024-09" -> "September 2024"
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const [year, month] = dateStr.split('-');
+    const d = new Date(Number(year), Number(month) - 1, 1);
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  // Sort "2024-09" strings descending
+  function sortDates(a, b) {
+    return b.localeCompare(a);
+  }
+
+  function populateFilters() {
+    const countries = [...new Set(allPhotos.map(p => p.country).filter(Boolean))].sort();
+    const dates = [...new Set(allPhotos.map(p => p.date).filter(Boolean))].sort(sortDates);
+
+    const countryEl = document.getElementById('filter-country');
+    countries.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      countryEl.appendChild(opt);
+    });
+
+    const dateEl = document.getElementById('filter-date');
+    dates.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = formatDate(d);
+      dateEl.appendChild(opt);
+    });
+  }
+
+  function applyFilters() {
+    const country = document.getElementById('filter-country').value;
+    const date = document.getElementById('filter-date').value;
+
+    filteredPhotos = allPhotos.filter(p => {
+      if (country && p.country !== country) return false;
+      if (date && p.date !== date) return false;
+      return true;
+    });
+
+    renderGrid();
+    updateStats();
+  }
+
+  function updateStats() {
+    const el = document.getElementById('stats');
+    if (filteredPhotos.length === allPhotos.length) {
+      el.textContent = `${allPhotos.length} photo${allPhotos.length !== 1 ? 's' : ''}`;
+    } else {
+      el.textContent = `${filteredPhotos.length} of ${allPhotos.length} photos`;
+    }
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('grid');
+    const emptyState = document.getElementById('empty-state');
+
+    // Remove existing photo items
+    grid.querySelectorAll('.photo-item').forEach(el => el.remove());
+
+    if (filteredPhotos.length === 0) {
+      emptyState.style.display = 'block';
+      return;
+    }
+    emptyState.style.display = 'none';
+
+    filteredPhotos.forEach((photo, i) => {
+      const item = document.createElement('div');
+      item.className = 'photo-item';
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('aria-label', photo.caption || photo.location || `Photo ${i + 1}`);
+
+      const placeholder = document.createElement('div');
+      placeholder.className = 'photo-placeholder';
+
+      const img = document.createElement('img');
+      img.src = `photos/${photo.filename}`;
+      img.alt = photo.caption || photo.location || '';
+      img.loading = 'lazy';
+      img.addEventListener('load', () => {
+        img.classList.add('loaded');
+        placeholder.style.display = 'none';
+      });
+      img.addEventListener('error', () => {
+        placeholder.style.background = 'var(--bg-card)';
+        placeholder.style.animation = 'none';
+      });
+
+      const overlay = document.createElement('div');
+      overlay.className = 'photo-overlay';
+
+      if (photo.location) {
+        const loc = document.createElement('div');
+        loc.className = 'photo-location';
+        loc.textContent = photo.location;
+        overlay.appendChild(loc);
+      }
+
+      if (photo.caption) {
+        const cap = document.createElement('div');
+        cap.className = 'photo-caption';
+        cap.textContent = photo.caption;
+        overlay.appendChild(cap);
+      }
+
+      item.appendChild(placeholder);
+      item.appendChild(img);
+      item.appendChild(overlay);
+
+      item.addEventListener('click', () => openLightbox(i));
+      item.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(i); }
+      });
+
+      grid.appendChild(item);
+    });
+  }
+
+  // Lightbox
+  function openLightbox(index) {
+    lbIndex = index;
+    showLightboxPhoto();
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  function showLightboxPhoto() {
+    const photo = filteredPhotos[lbIndex];
+    const img = document.getElementById('lightbox-img');
+    img.src = `photos/${photo.filename}`;
+    img.alt = photo.caption || photo.location || '';
+    document.getElementById('lightbox-location').textContent = photo.location || '';
+    document.getElementById('lightbox-caption').textContent = photo.caption || '';
+    document.getElementById('lb-counter').textContent =
+      `${lbIndex + 1} / ${filteredPhotos.length}`;
+  }
+
+  function lbNext() {
+    lbIndex = (lbIndex + 1) % filteredPhotos.length;
+    showLightboxPhoto();
+  }
+
+  function lbPrev() {
+    lbIndex = (lbIndex - 1 + filteredPhotos.length) % filteredPhotos.length;
+    showLightboxPhoto();
+  }
+
+  document.getElementById('lb-close').addEventListener('click', closeLightbox);
+  document.getElementById('lb-next').addEventListener('click', lbNext);
+  document.getElementById('lb-prev').addEventListener('click', lbPrev);
+
+  document.getElementById('lightbox').addEventListener('click', e => {
+    if (e.target === document.getElementById('lightbox')) closeLightbox();
+  });
+
+  document.addEventListener('keydown', e => {
+    const lb = document.getElementById('lightbox');
+    if (!lb.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') lbNext();
+    if (e.key === 'ArrowLeft') lbPrev();
+  });
+
+  document.getElementById('filter-country').addEventListener('change', applyFilters);
+  document.getElementById('filter-date').addEventListener('change', applyFilters);
+
+  // Load photos
+  fetch('photos.json')
+    .then(r => r.json())
+    .then(data => {
+      allPhotos = data;
+      populateFilters();
+      applyFilters();
+    })
+    .catch(err => {
+      console.error('Could not load photos.json:', err);
+      document.getElementById('stats').textContent = 'Could not load photos.';
+    });
+</script>
+</body>
+</html>
