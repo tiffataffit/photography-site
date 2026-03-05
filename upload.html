@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Photos</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4efe6;
+      --bg-card: #ede8de;
+      --text: #1c1916;
+      --text-muted: #6b6358;
+      --border: #d4ccbe;
+      --border-focus: #3d352b;
+      --accent: #3d352b;
+      --green: #4a7c59;
+      --red: #8b3a3a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      padding: 3rem 2rem 5rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: normal;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1.75rem;
+      max-width: 760px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Step indicator */
+    .steps {
+      display: flex;
+      gap: 0;
+      max-width: 760px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .step {
+      flex: 1;
+      text-align: center;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0.5rem;
+      border-bottom: 2px solid var(--border);
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .step.active {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Folder picker */
+    #folder-section { text-align: center; }
+
+    #folder-status {
+      font-size: 0.85rem;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      min-height: 1.4em;
+    }
+
+    #folder-status.ok { color: var(--green); }
+    #folder-status.err { color: var(--red); }
+
+    /* Buttons */
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      padding: 0.55rem 1.4rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+      border-radius: 2px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    button:hover { background: var(--border); }
+
+    button.primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    button.primary:hover { background: #2a241c; border-color: #2a241c; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Batch fields */
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      border-radius: 2px;
+      transition: border-color 0.15s;
+      appearance: none;
+    }
+
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6358'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.6rem center;
+      padding-right: 1.8rem;
+    }
+
+    .date-row { display: flex; gap: 0.5rem; }
+    .date-row select { flex: 1; }
+
+    /* Drop zone */
+    #drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 3px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+
+    #drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(61,53,43,0.04);
+    }
+
+    #drop-zone input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    #drop-zone p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-style: italic;
+      pointer-events: none;
+    }
+
+    #drop-zone small {
+      display: block;
+      margin-top: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--border-focus);
+      opacity: 0.5;
+    }
+
+    /* Photo previews */
+    #preview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    .preview-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .preview-img {
+      width: 100%;
+      aspect-ratio: 3/2;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preview-body {
+      padding: 0.6rem;
+    }
+
+    .preview-name {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.4rem;
+    }
+
+    .preview-body input {
+      width: 100%;
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.5rem;
+      font-family: inherit;
+      font-size: 0.75rem;
+      border-radius: 2px;
+      font-style: italic;
+    }
+
+    .preview-body input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .preview-body input::placeholder { color: var(--border-focus); opacity: 0.5; }
+
+    .preview-remove {
+      display: block;
+      width: 100%;
+      margin-top: 0.4rem;
+      padding: 0.2rem;
+      font-size: 0.7rem;
+      text-align: center;
+      color: var(--red);
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: 0.6;
+    }
+
+    .preview-remove:hover { opacity: 1; background: none; border: none; }
+
+    /* Action row */
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    #status-msg {
+      font-size: 0.82rem;
+      font-style: italic;
+      color: var(--text-muted);
+    }
+
+    #status-msg.ok { color: var(--green); }
+    #status-msg.err { color: var(--red); }
+
+    /* Progress bar */
+    #progress-wrap {
+      max-width: 760px;
+      margin: 0 auto 1rem;
+      display: none;
+    }
+
+    #progress-bar-bg {
+      background: var(--border);
+      border-radius: 2px;
+      height: 3px;
+      overflow: hidden;
+    }
+
+    #progress-bar {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s;
+    }
+
+    /* Browser warning */
+    #compat-warn {
+      max-width: 760px;
+      margin: 0 auto 1.5rem;
+      background: #f9f0e0;
+      border: 1px solid #d4ae6a;
+      border-radius: 3px;
+      padding: 0.85rem 1.1rem;
+      font-size: 0.82rem;
+      color: #6b4f1a;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .fields { grid-template-columns: 1fr; }
+      #preview-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Upload Photos</h1>
+<p class="subtitle">Open this file locally in Chrome or Edge &mdash; not via the deployed URL</p>
+
+<div id="compat-warn">
+  Your browser may not support the File System Access API. Please use Chrome or Edge to write files directly to your project folder.
+</div>
+
+<div class="steps">
+  <div class="step active" id="step1">1. Select folder</div>
+  <div class="step" id="step2">2. Batch details</div>
+  <div class="step" id="step3">3. Drop photos</div>
+  <div class="step" id="step4">4. Publish</div>
+</div>
+
+<!-- Step 1: folder -->
+<div class="card" id="folder-section">
+  <h2>Project folder</h2>
+  <p id="folder-status">No folder selected</p>
+  <button id="pick-folder-btn">Select project folder&hellip;</button>
+</div>
+
+<!-- Step 2: batch metadata -->
+<div class="card" id="meta-section" style="display:none">
+  <h2>Batch details &mdash; applies to all photos in this upload</h2>
+  <div class="fields">
+    <div class="field">
+      <label for="f-country">Country</label>
+      <input type="text" id="f-country" placeholder="Japan" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="f-location">Location</label>
+      <input type="text" id="f-location" placeholder="Kyoto, Japan" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Month &amp; Year</label>
+      <div class="date-row">
+        <select id="f-month">
+          <option value="01">January</option>
+          <option value="02">February</option>
+          <option value="03">March</option>
+          <option value="04">April</option>
+          <option value="05">May</option>
+          <option value="06">June</option>
+          <option value="07">July</option>
+          <option value="08">August</option>
+          <option value="09">September</option>
+          <option value="10">October</option>
+          <option value="11">November</option>
+          <option value="12">December</option>
+        </select>
+        <select id="f-year"></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3: drop zone + previews -->
+<div class="card" id="drop-section" style="display:none">
+  <h2>Photos</h2>
+  <div id="drop-zone">
+    <input type="file" id="file-input" accept="image/*" multiple>
+    <p>Drag &amp; drop photos here, or click to browse</p>
+    <small>JPG, PNG, WEBP &mdash; all photos will share the batch details above</small>
+  </div>
+  <div id="preview-grid"></div>
+</div>
+
+<!-- Progress -->
+<div id="progress-wrap">
+  <div id="progress-bar-bg"><div id="progress-bar"></div></div>
+</div>
+
+<!-- Action row -->
+<div class="action-row">
+  <span id="status-msg"></span>
+  <button class="primary" id="publish-btn" disabled>Add photos &rarr;</button>
+</div>
+
+<script>
+  let dirHandle = null;
+  let pendingFiles = []; // {file, objectUrl, caption}
+
+  // Populate year select
+  const yearEl = document.getElementById('f-year');
+  const currentYear = new Date().getFullYear();
+  for (let y = currentYear; y >= 2000; y--) {
+    const opt = document.createElement('option');
+    opt.value = String(y);
+    opt.textContent = String(y);
+    yearEl.appendChild(opt);
+  }
+
+  // Default month to current
+  document.getElementById('f-month').value =
+    String(new Date().getMonth() + 1).padStart(2, '0');
+
+  // Check browser support
+  if (!('showDirectoryPicker' in window)) {
+    document.getElementById('compat-warn').style.display = 'block';
+  }
+
+  // Step helpers
+  function setStep(n) {
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById(`step${i}`).classList.toggle('active', i <= n);
+    }
+  }
+
+  function setStatus(msg, type = '') {
+    const el = document.getElementById('status-msg');
+    el.textContent = msg;
+    el.className = type;
+  }
+
+  // Folder picker
+  document.getElementById('pick-folder-btn').addEventListener('click', async () => {
+    try {
+      dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      // Verify it looks like our project (has photos.json or photos/)
+      const names = [];
+      for await (const key of dirHandle.keys()) names.push(key);
+      if (!names.includes('photos.json') && !names.includes('photos') && !names.includes('index.html')) {
+        document.getElementById('folder-status').textContent =
+          'Warning: this may not be the right folder (no photos.json or index.html found). Proceeding anyway.';
+        document.getElementById('folder-status').className = 'err';
+      } else {
+        document.getElementById('folder-status').textContent =
+          `Folder selected: ${dirHandle.name}`;
+        document.getElementById('folder-status').className = 'ok';
+      }
+      document.getElementById('meta-section').style.display = 'block';
+      document.getElementById('drop-section').style.display = 'block';
+      setStep(2);
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        document.getElementById('folder-status').textContent = 'Could not open folder: ' + e.message;
+        document.getElementById('folder-status').className = 'err';
+      }
+    }
+  });
+
+  // Drop zone
+  const dropZone = document.getElementById('drop-zone');
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+    addFiles(files);
+  });
+
+  document.getElementById('file-input').addEventListener('change', e => {
+    addFiles([...e.target.files]);
+    e.target.value = ''; // reset so same files can be re-added after remove
+  });
+
+  function sanitizeFilename(name) {
+    return name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9._-]/g, '')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function addFiles(files) {
+    files.forEach(file => {
+      // Skip duplicates by name
+      if (pendingFiles.some(p => p.file.name === file.name)) return;
+      const objectUrl = URL.createObjectURL(file);
+      pendingFiles.push({ file, objectUrl, caption: '' });
+    });
+    renderPreviews();
+    updatePublishBtn();
+    if (pendingFiles.length > 0) setStep(3);
+  }
+
+  function renderPreviews() {
+    const grid = document.getElementById('preview-grid');
+    grid.innerHTML = '';
+    pendingFiles.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'preview-item';
+
+      const img = document.createElement('img');
+      img.className = 'preview-img';
+      img.src = item.objectUrl;
+      img.alt = '';
+
+      const body = document.createElement('div');
+      body.className = 'preview-body';
+
+      const name = document.createElement('div');
+      name.className = 'preview-name';
+      name.textContent = item.file.name;
+      name.title = item.file.name;
+
+      const captionInput = document.createElement('input');
+      captionInput.type = 'text';
+      captionInput.placeholder = 'Caption (optional)';
+      captionInput.value = item.caption;
+      captionInput.addEventListener('input', e => {
+        pendingFiles[i].caption = e.target.value;
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'preview-remove';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', () => {
+        URL.revokeObjectURL(item.objectUrl);
+        pendingFiles.splice(i, 1);
+        renderPreviews();
+        updatePublishBtn();
+      });
+
+      body.appendChild(name);
+      body.appendChild(captionInput);
+      body.appendChild(removeBtn);
+      div.appendChild(img);
+      div.appendChild(body);
+      grid.appendChild(div);
+    });
+  }
+
+  function updatePublishBtn() {
+    const btn = document.getElementById('publish-btn');
+    btn.disabled = pendingFiles.length === 0 || !dirHandle;
+    btn.textContent = pendingFiles.length > 0
+      ? `Add ${pendingFiles.length} photo${pendingFiles.length !== 1 ? 's' : ''} \u2192`
+      : 'Add photos \u2192';
+  }
+
+  // Publish
+  document.getElementById('publish-btn').addEventListener('click', async () => {
+    if (!dirHandle || pendingFiles.length === 0) return;
+
+    const country = document.getElementById('f-country').value.trim();
+    const location = document.getElementById('f-location').value.trim();
+    const month = document.getElementById('f-month').value;
+    const year = document.getElementById('f-year').value;
+    const date = `${year}-${month}`;
+
+    if (!country || !location) {
+      setStatus('Please fill in Country and Location.', 'err');
+      return;
+    }
+
+    document.getElementById('publish-btn').disabled = true;
+    setStatus('Writing files…');
+
+    const progressWrap = document.getElementById('progress-wrap');
+    const progressBar = document.getElementById('progress-bar');
+    progressWrap.style.display = 'block';
+
+    try {
+      // Get or create photos/ subdirectory
+      const photosDir = await dirHandle.getDirectoryHandle('photos', { create: true });
+
+      // Read existing photos.json
+      let existing = [];
+      try {
+        const jsonHandle = await dirHandle.getFileHandle('photos.json');
+        const jsonFile = await jsonHandle.getFile();
+        existing = JSON.parse(await jsonFile.text());
+      } catch (e) {
+        // photos.json doesn't exist yet, start fresh
+      }
+
+      const newEntries = [];
+
+      for (let i = 0; i < pendingFiles.length; i++) {
+        const { file, caption } = pendingFiles[i];
+
+        // Build a unique filename: date-prefix + sanitized original name
+        let baseName = sanitizeFilename(file.name);
+        // Ensure it has an extension
+        if (!baseName.includes('.')) baseName += '.jpg';
+
+        // Avoid collisions with existing files
+        let finalName = baseName;
+        const existingNames = new Set(existing.map(p => p.filename));
+        if (existingNames.has(finalName)) {
+          const ext = finalName.includes('.') ? finalName.split('.').pop() : 'jpg';
+          const stem = finalName.replace(/\.[^.]+$/, '');
+          finalName = `${stem}-${Date.now()}-${i}.${ext}`;
+        }
+
+        // Write image file
+        const fileHandle = await photosDir.getFileHandle(finalName, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(file);
+        await writable.close();
+
+        const entry = { filename: finalName, location, country, date };
+        if (caption) entry.caption = caption;
+        newEntries.push(entry);
+
+        progressBar.style.width = `${Math.round(((i + 1) / pendingFiles.length) * 100)}%`;
+      }
+
+      // Update photos.json
+      const updated = [...existing, ...newEntries];
+      const jsonHandle = await dirHandle.getFileHandle('photos.json', { create: true });
+      const writable = await jsonHandle.createWritable();
+      await writable.write(JSON.stringify(updated, null, 2) + '\n');
+      await writable.close();
+
+      // Clean up
+      pendingFiles.forEach(p => URL.revokeObjectURL(p.objectUrl));
+      pendingFiles = [];
+      renderPreviews();
+      updatePublishBtn();
+      progressBar.style.width = '100%';
+      setStatus(`Done! ${newEntries.length} photo${newEntries.length !== 1 ? 's' : ''} added. Now run: git add . && git commit -m "Add photos" && git push`, 'ok');
+      setStep(4);
+    } catch (e) {
+      setStatus('Error: ' + e.message, 'err');
+      document.getElementById('publish-btn').disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
