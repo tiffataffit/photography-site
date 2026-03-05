@@ -303,10 +303,31 @@
       background: var(--border);
     }
 
+    .project-img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+    }
+
     .project-title {
       font-size: 0.9rem;
       letter-spacing: 0.04em;
       color: var(--text);
+    }
+
+    a.project-card {
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    a.project-card:hover .project-title {
+      color: var(--accent);
+    }
+
+    a.project-card:hover .project-img {
+      opacity: 0.85;
     }
 
     @media (max-width: 700px) {
@@ -513,10 +534,10 @@
       <div class="project-img-placeholder"></div>
       <div class="project-title">Synesthesia Simulator</div>
     </div>
-    <div class="project-card">
-      <div class="project-img-placeholder"></div>
-      <div class="project-title">Curious Thoughtful</div>
-    </div>
+    <a class="project-card" href="https://claude.ai/public/artifacts/4a92eb20-5a99-4300-9b47-e12392d591cf" target="_blank" rel="noopener">
+      <img class="project-img" src="creative-thoughtful-preview.jpg" alt="Creative Thoughtful">
+      <div class="project-title">Creative Thoughtful</div>
+    </a>
   </div>
 </div>
 
