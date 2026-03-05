@@ -80,8 +80,6 @@
 
     /* ── About ── */
     #tab-about {
-      max-width: 900px;
-      margin: 0 auto;
       padding: 3.5rem 2rem 5rem;
     }
 
@@ -113,6 +111,25 @@
 
     .about-text p:last-child { margin-bottom: 0; }
 
+    .email-btn {
+      display: inline-block;
+      margin-top: 1.75rem;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .email-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     @media (max-width: 700px) {
       .about-layout { flex-direction: column; gap: 2rem; }
       .about-image { width: 100%; max-width: 280px; }
@@ -124,15 +141,8 @@
     #photo-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       padding: 0.75rem 2rem;
-    }
-
-    #photo-title {
-      font-size: 0.9rem;
-      font-style: italic;
-      color: var(--text-muted);
-      letter-spacing: 0.02em;
     }
 
     #filters {
@@ -221,7 +231,7 @@
     .photo-item {
       position: relative;
       overflow: hidden;
-      background: var(--bg-card);
+      background: var(--bg);
       cursor: pointer;
       aspect-ratio: 3 / 2;
     }
@@ -261,7 +271,7 @@
     .photo-placeholder {
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, var(--bg-card) 25%, var(--border) 50%, var(--bg-card) 75%);
+      background: linear-gradient(90deg, var(--bg) 25%, var(--bg-card) 50%, var(--bg) 75%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
     }
@@ -466,6 +476,7 @@
     <div class="about-text">
       <p>I'm a lifelong tinkerer who built a career in tech as a product manager - which turns out to be a natural home for someone who grew up with the nickname "10,000 questions." I've spent years translating between what's technically possible and what people actually need, working across engineers, designers, and stakeholders who speak very different languages. I grew up in New York surrounded by creative people, always drawn to spaces where things were being made, even when I didn't think of myself as one of the makers.</p>
       <p>The creative pull has never gone away. I've loved photography and garments since high school, and I collect jewelry and ceramics from everywhere I travel - objects made by hand, usually with a story attached. The more I've sat with those interests, the more I've realized they come from the same place: curiosity about people, and about how small creative choices can shift how we see ourselves and show up in the world. I think a lot about what it looks like when new tools meet that instinct - and who gets to be in the room when it happens.</p>
+      <a href="mailto:hello@example.com" class="email-btn">Email</a>
     </div>
   </div>
 </div>
@@ -473,7 +484,6 @@
 <!-- Photography -->
 <div id="tab-photography" class="tab-panel">
   <div id="photo-header">
-  <span id="photo-title">Memories from where I've been</span>
   <div id="filters">
     <div class="filter-group">
       <label for="filter-country">Country</label>
@@ -626,7 +636,7 @@
       placeholder.style.display = 'none';
     });
     img.addEventListener('error', () => {
-      placeholder.style.background = 'var(--bg-card)';
+      placeholder.style.background = 'var(--bg)';
       placeholder.style.animation = 'none';
     });
 
