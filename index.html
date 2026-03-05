@@ -190,8 +190,9 @@
     .about-text p:last-child { margin-bottom: 0; }
 
     @media (max-width: 700px) {
-      .about-layout { flex-direction: column; gap: 2rem; }
-      .about-image { width: 100%; max-width: 280px; }
+      .about-layout { display: block; }
+      .about-image { float: left; width: 130px; margin: 0 1.25rem 0.75rem 0; }
+      .about-photos-section { clear: both; }
     }
 
     /* ── Photography ── */
@@ -564,7 +565,10 @@
 
       /* Photography */
       #tab-photography { padding-top: 1rem; }
-      #photo-header { flex-wrap: wrap; gap: 0.5rem; padding: 0.35rem 1rem; }
+      #photo-header { padding: 0.35rem 1rem; }
+      #filters { flex-wrap: nowrap; gap: 0.75rem; }
+      .filter-group label { display: none; }
+      select { font-size: 0.72rem; }
       #grid { margin: 0 1rem 3rem; }
       .photo-item { height: 110px; flex-basis: 165px; }
 
