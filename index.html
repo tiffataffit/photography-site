@@ -341,8 +341,14 @@
     </select>
   </div>
   <div class="filter-group">
-    <label for="filter-date">Month</label>
-    <select id="filter-date">
+    <label for="filter-month">Month</label>
+    <select id="filter-month">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="filter-year">Year</label>
+    <select id="filter-year">
       <option value="">All</option>
     </select>
   </div>
@@ -395,7 +401,9 @@
 
   function populateFilters() {
     const countries = [...new Set(allPhotos.map(p => p.country).filter(Boolean))].sort();
-    const dates = [...new Set(allPhotos.map(p => p.date).filter(Boolean))].sort(sortDates);
+    const dates = [...new Set(allPhotos.map(p => p.date).filter(Boolean))];
+    const months = [...new Set(dates.map(d => d.split('-')[1]))].sort();
+    const years = [...new Set(dates.map(d => d.split('-')[0]))].sort((a, b) => b - a);
 
     const countryEl = document.getElementById('filter-country');
     countries.forEach(c => {
@@ -405,22 +413,32 @@
       countryEl.appendChild(opt);
     });
 
-    const dateEl = document.getElementById('filter-date');
-    dates.forEach(d => {
+    const monthEl = document.getElementById('filter-month');
+    months.forEach(m => {
       const opt = document.createElement('option');
-      opt.value = d;
-      opt.textContent = formatDate(d);
-      dateEl.appendChild(opt);
+      opt.value = m;
+      opt.textContent = new Date(2000, Number(m) - 1, 1).toLocaleDateString('en-US', { month: 'long' });
+      monthEl.appendChild(opt);
+    });
+
+    const yearEl = document.getElementById('filter-year');
+    years.forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      yearEl.appendChild(opt);
     });
   }
 
   function applyFilters() {
     const country = document.getElementById('filter-country').value;
-    const date = document.getElementById('filter-date').value;
+    const month = document.getElementById('filter-month').value;
+    const year = document.getElementById('filter-year').value;
 
     filteredPhotos = allPhotos.filter(p => {
       if (country && p.country !== country) return false;
-      if (date && p.date !== date) return false;
+      if (month && p.date && p.date.split('-')[1] !== month) return false;
+      if (year && p.date && p.date.split('-')[0] !== year) return false;
       return true;
     });
 
@@ -475,13 +493,6 @@
 
       const overlay = document.createElement('div');
       overlay.className = 'photo-overlay';
-
-      if (photo.location) {
-        const loc = document.createElement('div');
-        loc.className = 'photo-location';
-        loc.textContent = photo.location;
-        overlay.appendChild(loc);
-      }
 
       if (photo.caption) {
         const cap = document.createElement('div');
@@ -554,7 +565,8 @@
   });
 
   document.getElementById('filter-country').addEventListener('change', applyFilters);
-  document.getElementById('filter-date').addEventListener('change', applyFilters);
+  document.getElementById('filter-month').addEventListener('change', applyFilters);
+  document.getElementById('filter-year').addEventListener('change', applyFilters);
 
   // Load photos
   fetch('photos.json')
