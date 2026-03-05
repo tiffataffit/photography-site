@@ -30,26 +30,44 @@
 
     /* ── Header ── */
     header {
-      padding: 3rem 2rem 0;
-      text-align: center;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      padding: 0 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.2rem;
+      padding: 1rem 0;
     }
 
     header h1 {
-      font-size: 1.75rem;
+      font-size: 1.1rem;
       font-weight: normal;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--accent);
+    }
+
+    .header-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-style: italic;
+      letter-spacing: 0.02em;
     }
 
     /* ── Tab nav ── */
     nav {
       display: flex;
-      justify-content: flex-start;
+      justify-content: flex-end;
       gap: 0;
-      margin-top: 2rem;
-      border-bottom: 1px solid var(--border);
-      padding-left: 2rem;
+      margin-top: 0;
+      border-bottom: none;
+      padding-left: 0;
     }
 
     nav button {
@@ -108,11 +126,66 @@
 
 
     .about-text p {
-      font-size: 1.05rem;
+      font-size: 0.92rem;
       line-height: 1.85;
       color: var(--text);
       margin-bottom: 1.4rem;
     }
+
+    /* ── About carousel ── */
+    .about-photos-section {
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .about-photos-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-style: italic;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.85rem;
+    }
+
+    .about-carousel-outer {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .about-carousel {
+      flex: 1;
+      display: flex;
+      gap: 3px;
+      overflow: hidden;
+    }
+
+    .carousel-thumb {
+      height: 110px;
+      width: auto;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: block;
+      object-fit: cover;
+      transition: opacity 0.2s;
+    }
+
+    .carousel-thumb:hover { opacity: 0.8; }
+
+    .carousel-nav {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      flex-shrink: 0;
+      opacity: 0.55;
+      transition: opacity 0.2s;
+      line-height: 1;
+    }
+
+    .carousel-nav:hover { opacity: 1; background: none; }
 
     .about-text p:last-child { margin-bottom: 0; }
 
@@ -487,7 +560,10 @@
 <body>
 
 <header>
-  <h1>Tiffany</h1>
+  <div class="header-left">
+    <h1>Tiffany Wang</h1>
+    <span class="header-subtitle">Photographer and technologist</span>
+  </div>
   <nav>
     <button class="tab-btn active" data-tab="about">About</button>
     <button class="tab-btn" data-tab="photography">Photography</button>
@@ -504,6 +580,15 @@
     <div class="about-text">
       <p>I'm a lifelong tinkerer who built a career in tech as a product manager - which turns out to be a natural home for someone who grew up with the nickname "10,000 questions." I've spent years translating between what's technically possible and what people actually need, working across engineers, designers, and stakeholders who speak very different languages. I grew up in New York surrounded by creative people, always drawn to spaces where things were being made, even when I didn't think of myself as one of the makers.</p>
       <p>The creative pull has never gone away. I've loved photography and garments since high school, and I collect jewelry and ceramics from everywhere I travel - objects made by hand, usually with a story attached. The more I've sat with those interests, the more I've realized they come from the same place: curiosity about people, and about how small creative choices can shift how we see ourselves and show up in the world. I think a lot about what it looks like when new tools meet that instinct - and who gets to be in the room when it happens.</p>
+    </div>
+  </div>
+
+  <div class="about-photos-section">
+    <p class="about-photos-label">Some of my favorite photos I've taken:</p>
+    <div class="about-carousel-outer">
+      <button class="carousel-nav" id="carousel-prev">&#8592;</button>
+      <div class="about-carousel" id="about-carousel"></div>
+      <button class="carousel-nav" id="carousel-next">&#8594;</button>
     </div>
   </div>
 </div>
@@ -588,8 +673,11 @@
   function showTab(id) {
     tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
     tabPanels.forEach(p => p.classList.toggle('active', p.id === `tab-${id}`));
-    // Load photos when photography tab first becomes visible
-    if (id === 'photography' && !photosLoaded) loadPhotos();
+    if (id === 'photography' && !photographyInitialized && photosReady) {
+      photographyInitialized = true;
+      populateFilters();
+      applyFilters();
+    }
   }
 
   tabBtns.forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
@@ -598,7 +686,8 @@
   let allPhotos = [];
   let filteredPhotos = [];
   let lbIndex = 0;
-  let photosLoaded = false;
+  let photosReady = false;
+  let photographyInitialized = false;
 
   function populateFilters() {
     const countries = [...new Set(allPhotos.map(p => p.country).filter(Boolean))].sort();
@@ -751,17 +840,48 @@
     });
   }
 
-  function loadPhotos() {
-    fetch('photos.json')
-      .then(r => r.json())
-      .then(data => {
-        allPhotos = data;
-        photosLoaded = true;
+  // Load photos eagerly — used by both the carousel and the photography tab
+  fetch('photos.json')
+    .then(r => r.json())
+    .then(data => {
+      allPhotos = data;
+      photosReady = true;
+      buildCarousel();
+      // If photography tab is already open, initialize it now
+      if (document.getElementById('tab-photography').classList.contains('active')) {
+        photographyInitialized = true;
         populateFilters();
         applyFilters();
-      })
-      .catch(err => console.error('Could not load photos.json:', err));
+      }
+    })
+    .catch(err => console.error('Could not load photos.json:', err));
+
+  // ── About carousel ──
+  let carouselPhotos = [];
+
+  function buildCarousel() {
+    carouselPhotos = [...allPhotos].sort(() => Math.random() - 0.5).slice(0, 10);
+    const container = document.getElementById('about-carousel');
+    carouselPhotos.forEach((photo, i) => {
+      const img = document.createElement('img');
+      img.className = 'carousel-thumb';
+      img.src = `photos/${photo.filename}`;
+      img.alt = photo.location || '';
+      img.loading = 'lazy';
+      img.addEventListener('click', () => {
+        filteredPhotos = carouselPhotos;
+        openLightbox(i);
+      });
+      container.appendChild(img);
+    });
   }
+
+  document.getElementById('carousel-prev').addEventListener('click', () => {
+    document.getElementById('about-carousel').scrollBy({ left: -360, behavior: 'smooth' });
+  });
+  document.getElementById('carousel-next').addEventListener('click', () => {
+    document.getElementById('about-carousel').scrollBy({ left: 360, behavior: 'smooth' });
+  });
 
   document.getElementById('filter-country').addEventListener('change', applyFilters);
   document.getElementById('filter-month').addEventListener('change', applyFilters);
