@@ -1052,33 +1052,34 @@
   const vlb = document.getElementById('video-lightbox');
   const vlbVideo = document.getElementById('vlb-video');
 
-  document.getElementById('synesthesia-demo-card').addEventListener('click', () => {
+  function openVideoLightbox() {
+    showTab('projects');
     vlbVideo.src = 'synesthesia-demo.mp4';
     vlb.classList.add('active');
     vlbVideo.play();
-  });
+    location.hash = 'synesthesia-demo';
+  }
 
-  document.getElementById('vlb-close').addEventListener('click', () => {
+  function closeVideoLightbox() {
     vlb.classList.remove('active');
     vlbVideo.pause();
     vlbVideo.src = '';
-  });
+    history.replaceState(null, '', location.pathname);
+  }
+
+  document.getElementById('synesthesia-demo-card').addEventListener('click', openVideoLightbox);
+
+  document.getElementById('vlb-close').addEventListener('click', closeVideoLightbox);
 
   vlb.addEventListener('click', e => {
-    if (e.target === vlb) {
-      vlb.classList.remove('active');
-      vlbVideo.pause();
-      vlbVideo.src = '';
-    }
+    if (e.target === vlb) closeVideoLightbox();
   });
 
   document.addEventListener('keydown', e => {
-    if (vlb.classList.contains('active') && e.key === 'Escape') {
-      vlb.classList.remove('active');
-      vlbVideo.pause();
-      vlbVideo.src = '';
-    }
+    if (vlb.classList.contains('active') && e.key === 'Escape') closeVideoLightbox();
   });
+
+  if (location.hash === '#synesthesia-demo') openVideoLightbox();
 </script>
 </body>
 </html>
