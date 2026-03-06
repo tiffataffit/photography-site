@@ -410,13 +410,52 @@
       cursor: pointer;
     }
 
-    a.project-card:hover .project-title {
+    a.project-card:hover .project-title,
+    #synesthesia-demo-card:hover .project-title {
       color: var(--accent);
     }
 
-    a.project-card:hover .project-img {
+    a.project-card:hover .project-img,
+    #synesthesia-demo-card:hover .project-img {
       opacity: 0.85;
     }
+
+    /* ── Video lightbox ── */
+    #video-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--lightbox-bg);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    #video-lightbox.active { display: flex; }
+
+    #vlb-video {
+      max-width: 90vw;
+      max-height: 85vh;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    #vlb-close {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      color: #c8bfb2;
+      font-size: 2rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.25rem;
+      transition: color 0.2s;
+    }
+
+    #vlb-close:hover { color: #fff; }
 
     @media (max-width: 700px) {
       .projects-grid { grid-template-columns: repeat(2, 1fr); }
@@ -662,12 +701,22 @@
       <div class="project-img-placeholder"></div>
       <div class="project-title">Synesthesia</div>
     </a>
+    <div class="project-card" id="synesthesia-demo-card" style="cursor:pointer;">
+      <img class="project-img" src="synesthesia-demo-preview.jpg" alt="Synesthesia demo">
+      <div class="project-title">Synesthesia demo + BTS :P</div>
+    </div>
     <a class="project-card" href="https://claude.ai/public/artifacts/e44fdb3c-ba5b-4d7b-9ebf-c3ce6dd8b222" target="_blank" rel="noopener">
       <img class="project-img" src="curious-thoughtful-preview.jpg" alt="Curious Thoughtful">
       <div class="project-title">Curious Thoughtful</div>
       <div class="project-desc">Discussing what fulfillment means to ordinary people</div>
     </a>
   </div>
+</div>
+
+<!-- Video lightbox -->
+<div id="video-lightbox" role="dialog" aria-modal="true" aria-label="Video player">
+  <button id="vlb-close" aria-label="Close">&times;</button>
+  <video id="vlb-video" controls playsinline></video>
 </div>
 
 <!-- Lightbox -->
@@ -968,6 +1017,38 @@
     if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowRight') lbNext();
     if (e.key === 'ArrowLeft') lbPrev();
+  });
+
+  // ── Video lightbox ──
+  const vlb = document.getElementById('video-lightbox');
+  const vlbVideo = document.getElementById('vlb-video');
+
+  document.getElementById('synesthesia-demo-card').addEventListener('click', () => {
+    vlbVideo.src = 'synesthesia-demo.mp4';
+    vlb.classList.add('active');
+    vlbVideo.play();
+  });
+
+  document.getElementById('vlb-close').addEventListener('click', () => {
+    vlb.classList.remove('active');
+    vlbVideo.pause();
+    vlbVideo.src = '';
+  });
+
+  vlb.addEventListener('click', e => {
+    if (e.target === vlb) {
+      vlb.classList.remove('active');
+      vlbVideo.pause();
+      vlbVideo.src = '';
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (vlb.classList.contains('active') && e.key === 'Escape') {
+      vlb.classList.remove('active');
+      vlbVideo.pause();
+      vlbVideo.src = '';
+    }
   });
 </script>
 </body>
