@@ -640,17 +640,11 @@
       for (let i = 0; i < pendingFiles.length; i++) {
         const { file, caption } = pendingFiles[i];
 
-        // Build a unique filename: sanitized original name, always .jpg
+        // Build filename: sanitized original name, always .jpg
         const stem = sanitizeFilename(file.name).replace(/\.[^.]+$/, '') || `photo-${i}`;
-        let finalName = stem + '.jpg';
+        const finalName = stem + '.jpg';
 
-        // Avoid collisions with existing files
-        const existingNames = new Set(existing.map(p => p.filename));
-        if (existingNames.has(finalName)) {
-          finalName = `${stem}-${Date.now()}-${i}.jpg`;
-        }
-
-        // Convert to JPEG and write
+        // Convert to JPEG and write (overwrite if exists)
         setStatus(`Converting ${i + 1} of ${pendingFiles.length}…`);
         const jpeg = await convertToJpeg(file);
         const fileHandle = await photosDir.getFileHandle(finalName, { create: true });
@@ -658,14 +652,20 @@
         await writable.write(jpeg);
         await writable.close();
 
+        // Update existing entry if filename matches, otherwise add new
+        const existingIdx = existing.findIndex(p => p.filename === finalName);
         const entry = { filename: finalName, location, country, date };
         if (caption) entry.caption = caption;
-        newEntries.push(entry);
+        if (existingIdx !== -1) {
+          existing[existingIdx] = entry;
+        } else {
+          newEntries.push(entry);
+        }
 
         progressBar.style.width = `${Math.round(((i + 1) / pendingFiles.length) * 100)}%`;
       }
 
-      // Update photos.json
+      // Update photos.json (existing already has in-place updates applied)
       const updated = [...existing, ...newEntries];
       const jsonHandle = await dirHandle.getFileHandle('photos.json', { create: true });
       const writable = await jsonHandle.createWritable();
