@@ -674,7 +674,7 @@
   </div>
 
   <div class="about-photos-section">
-    <p class="about-photos-label">Some of my favorite photos I've taken:</p>
+    <p class="about-photos-label">Some of my favorite photos:</p>
     <div class="about-carousel-outer">
       <button class="carousel-nav" id="carousel-prev">&#8592;</button>
       <div class="about-carousel" id="about-carousel"></div>
@@ -991,7 +991,7 @@
   let carouselPhotos = [];
 
   function buildCarousel() {
-    carouselPhotos = [...allPhotos].sort(() => Math.random() - 0.5).slice(0, 10);
+    carouselPhotos = [...allPhotos].sort(() => Math.random() - 0.5).slice(0, 50);
     const container = document.getElementById('about-carousel');
     carouselPhotos.forEach((photo, i) => {
       const img = document.createElement('img');
