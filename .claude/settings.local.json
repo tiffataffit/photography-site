@@ -6,7 +6,20 @@
       "Bash(/opt/homebrew/bin/gh run:*)",
       "Bash(open:*)",
       "Bash(/opt/homebrew/bin/gh:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "WebSearch",
+      "WebFetch(domain:claude.ai)",
+      "Bash(cp:*)",
+      "Bash(sips:*)",
+      "Bash(dig:*)",
+      "Bash(openssl:*)",
+      "Bash(ffmpeg:*)",
+      "Bash(qlmanage:*)",
+      "Bash(brew install:*)",
+      "Bash(/opt/homebrew/bin/brew install:*)",
+      "Bash(/opt/homebrew/bin/ffmpeg:*)",
+      "Bash(python3:*)"
     ]
   }
 }
