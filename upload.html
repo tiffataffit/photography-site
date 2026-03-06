@@ -877,7 +877,10 @@
     const currentYear = String(new Date().getFullYear());
 
     panel.innerHTML = `
-      ${isSingle ? `<img src="photos/${photo.filename}" alt="">` : `<p style="font-size:0.82rem;color:var(--text-muted);font-style:italic;margin-bottom:0.85rem;">${count} photos selected</p>`}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.85rem;">
+        ${isSingle ? `<img src="photos/${photo.filename}" alt="" style="display:block;width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:2px;margin-bottom:0;">` : `<span style="font-size:0.82rem;color:var(--text-muted);font-style:italic;">${count} photos selected</span>`}
+        <button id="ep-clear" style="font-size:0.7rem;padding:0.2rem 0.5rem;margin-left:0.5rem;flex-shrink:0;">Clear all</button>
+      </div>
       <div class="field"><label>Country</label>
         <input id="ep-country" value="${isSingle ? (photo.country || '') : ''}" placeholder="${isSingle ? '' : 'Leave blank to keep existing'}"></div>
       <div class="field"><label>Location</label>
@@ -928,6 +931,12 @@
         renderEditGrid();
         panel.innerHTML = '<p class="placeholder">Select photos to edit</p>';
       } catch (e) { alert('Error: ' + e.message); }
+    });
+
+    document.getElementById('ep-clear').addEventListener('click', () => {
+      editSelected.clear();
+      renderEditGrid();
+      renderEditPanel();
     });
   }
 
