@@ -649,7 +649,7 @@
 <body>
 
 <header>
-  <div class="header-left">
+  <div class="header-left" id="home-link" style="cursor:pointer;">
     <h1>Tiffany Wang</h1>
     <span class="header-subtitle">Photographer and technologist</span>
   </div>
@@ -774,6 +774,8 @@
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  document.getElementById('home-link').addEventListener('click', () => showTab('about'));
 
   // ── Tabs ──
   const tabBtns = document.querySelectorAll('.tab-btn');
