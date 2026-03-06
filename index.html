@@ -776,7 +776,10 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  document.getElementById('home-link').addEventListener('click', () => showTab('about'));
+  document.getElementById('home-link').addEventListener('click', () => {
+    showTab('about');
+    history.replaceState(null, '', '/');
+  });
 
   // ── Tabs ──
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -792,7 +795,12 @@
     }
   }
 
-  tabBtns.forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
+  tabBtns.forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.tab;
+    showTab(id);
+    if (id === 'about') history.replaceState(null, '', '/');
+    else history.replaceState(null, '', `/#${id}`);
+  }));
 
   // ── Photography ──
   let allPhotos = [];
@@ -1057,29 +1065,40 @@
     vlbVideo.src = 'synesthesia-demo.mp4';
     vlb.classList.add('active');
     vlbVideo.play();
-    location.hash = 'synesthesia-demo';
+    history.replaceState(null, '', '/projects/synesthesia-demo');
   }
 
   function closeVideoLightbox() {
     vlb.classList.remove('active');
     vlbVideo.pause();
     vlbVideo.src = '';
-    history.replaceState(null, '', location.pathname);
+    history.replaceState(null, '', '/#projects');
   }
 
   document.getElementById('synesthesia-demo-card').addEventListener('click', openVideoLightbox);
-
   document.getElementById('vlb-close').addEventListener('click', closeVideoLightbox);
-
-  vlb.addEventListener('click', e => {
-    if (e.target === vlb) closeVideoLightbox();
-  });
-
+  vlb.addEventListener('click', e => { if (e.target === vlb) closeVideoLightbox(); });
   document.addEventListener('keydown', e => {
     if (vlb.classList.contains('active') && e.key === 'Escape') closeVideoLightbox();
   });
 
-  if (location.hash === '#synesthesia-demo') openVideoLightbox();
+  // ── Initial routing ──
+  (function route() {
+    // Catch redirect from 404.html
+    const stored = sessionStorage.getItem('redirect');
+    if (stored) { sessionStorage.removeItem('redirect'); }
+    const path = stored ? new URL(stored).pathname : location.pathname;
+    const hash = location.hash;
+
+    if (path === '/projects/synesthesia-demo') {
+      openVideoLightbox();
+    } else if (hash === '#photography') {
+      showTab('photography');
+    } else if (hash === '#projects') {
+      showTab('projects');
+    }
+    // default: about tab (already active)
+  })();
 </script>
 </body>
 </html>
