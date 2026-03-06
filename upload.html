@@ -806,7 +806,7 @@
 
   // ── Edit / Delete ──
   let editPhotos = [];
-  let selectedEditFilename = null;
+  let editSelected = new Set();
 
   async function loadEditPhotos() {
     if (!dirHandle) return;
@@ -815,7 +815,9 @@
       editPhotos = JSON.parse(await (await jsonHandle.getFile()).text());
     } catch (e) { return; }
     document.getElementById('edit-section').style.display = 'block';
+    editSelected.clear();
     renderEditGrid();
+    renderEditPanel();
   }
 
   function renderEditGrid() {
@@ -823,8 +825,7 @@
     grid.innerHTML = '';
     editPhotos.forEach(photo => {
       const item = document.createElement('div');
-      item.className = 'edit-thumb' + (photo.filename === selectedEditFilename ? ' selected' : '');
-      item.dataset.filename = photo.filename;
+      item.className = 'edit-thumb' + (editSelected.has(photo.filename) ? ' selected' : '');
 
       const img = document.createElement('img');
       img.src = `photos/${photo.filename}`;
@@ -838,72 +839,94 @@
 
       item.appendChild(img);
       item.appendChild(label);
-      item.addEventListener('click', () => selectEditPhoto(photo.filename));
+      item.addEventListener('click', e => {
+        if (editSelected.has(photo.filename)) {
+          editSelected.delete(photo.filename);
+        } else {
+          editSelected.add(photo.filename);
+        }
+        item.classList.toggle('selected', editSelected.has(photo.filename));
+        renderEditPanel();
+      });
       grid.appendChild(item);
     });
   }
 
-  function selectEditPhoto(filename) {
-    selectedEditFilename = filename;
-    renderEditGrid();
-    const photo = editPhotos.find(p => p.filename === filename);
-    if (!photo) return;
+  function monthOptions(selected) {
+    return ['01','02','03','04','05','06','07','08','09','10','11','12']
+      .map(m => `<option value="${m}"${m === selected ? ' selected' : ''}>${new Date(2000,+m-1).toLocaleString('default',{month:'long'})}</option>`).join('');
+  }
 
+  function yearOptions(selected) {
+    return Array.from({length: new Date().getFullYear()-1999}, (_,i) => new Date().getFullYear()-i)
+      .map(y => `<option value="${y}"${String(y) === selected ? ' selected' : ''}>${y}</option>`).join('');
+  }
+
+  function renderEditPanel() {
     const panel = document.getElementById('edit-panel');
-    const [year, month] = (photo.date || '-').split('-');
+    const count = editSelected.size;
+
+    if (count === 0) {
+      panel.innerHTML = '<p class="placeholder">Select photos to edit</p>';
+      return;
+    }
+
+    const isSingle = count === 1;
+    const photo = isSingle ? editPhotos.find(p => p.filename === [...editSelected][0]) : null;
+    const [year, month] = isSingle ? (photo.date || '-').split('-') : ['', ''];
+    const currentYear = String(new Date().getFullYear());
 
     panel.innerHTML = `
-      <img src="photos/${photo.filename}" alt="">
+      ${isSingle ? `<img src="photos/${photo.filename}" alt="">` : `<p style="font-size:0.82rem;color:var(--text-muted);font-style:italic;margin-bottom:0.85rem;">${count} photos selected</p>`}
       <div class="field"><label>Country</label>
-        <input id="ep-country" value="${photo.country || ''}"></div>
+        <input id="ep-country" value="${isSingle ? (photo.country || '') : ''}" placeholder="${isSingle ? '' : 'Leave blank to keep existing'}"></div>
       <div class="field"><label>Location</label>
-        <input id="ep-location" value="${photo.location || ''}"></div>
+        <input id="ep-location" value="${isSingle ? (photo.location || '') : ''}" placeholder="${isSingle ? '' : 'Leave blank to keep existing'}"></div>
       <div class="field"><label>Caption</label>
-        <input id="ep-caption" value="${photo.caption || ''}" placeholder="Optional"></div>
+        <input id="ep-caption" value="${isSingle ? (photo.caption || '') : ''}" placeholder="${isSingle ? 'Optional' : 'Leave blank to keep existing'}"></div>
       <div class="field"><label>Month</label>
-        <select id="ep-month">
-          ${['01','02','03','04','05','06','07','08','09','10','11','12']
-            .map(m => `<option value="${m}"${m === month ? ' selected' : ''}>${new Date(2000, +m-1).toLocaleString('default',{month:'long'})}</option>`).join('')}
-        </select></div>
+        <select id="ep-month">${isSingle ? monthOptions(month) : `<option value="">— keep existing —</option>${monthOptions('')}`}</select></div>
       <div class="field"><label>Year</label>
-        <select id="ep-year">
-          ${Array.from({length: new Date().getFullYear()-1999}, (_,i) => new Date().getFullYear()-i)
-            .map(y => `<option value="${y}"${String(y) === year ? ' selected' : ''}>${y}</option>`).join('')}
-        </select></div>
+        <select id="ep-year">${isSingle ? yearOptions(year) : `<option value="">— keep existing —</option>${yearOptions(currentYear)}`}</select></div>
       <div class="panel-actions">
-        <button class="primary" id="ep-save">Save</button>
-        <button id="ep-delete" style="color:var(--red);border-color:var(--red);">Delete</button>
+        <button class="primary" id="ep-save">Save ${isSingle ? '' : count + ' photos'}</button>
+        <button id="ep-delete" style="color:var(--red);border-color:var(--red);">Delete ${isSingle ? '' : count}</button>
       </div>`;
 
     document.getElementById('ep-save').addEventListener('click', async () => {
-      const idx = editPhotos.findIndex(p => p.filename === filename);
-      if (idx === -1) return;
-      const entry = { filename };
       const country = document.getElementById('ep-country').value.trim();
       const location = document.getElementById('ep-location').value.trim();
       const caption = document.getElementById('ep-caption').value.trim();
       const mo = document.getElementById('ep-month').value;
       const yr = document.getElementById('ep-year').value;
-      if (country) entry.country = country;
-      if (location) entry.location = location;
-      if (caption) entry.caption = caption;
-      entry.date = `${yr}-${mo}`;
-      editPhotos[idx] = entry;
+
+      editPhotos = editPhotos.map(p => {
+        if (!editSelected.has(p.filename)) return p;
+        const entry = { ...p };
+        if (country) entry.country = country;
+        if (location) entry.location = location;
+        if (caption) entry.caption = caption; else if (isSingle) delete entry.caption;
+        if (mo && yr) entry.date = `${yr}-${mo}`;
+        return entry;
+      });
+
       await savePhotosJson();
       renderEditGrid();
       document.getElementById('ep-save').textContent = 'Saved ✓';
     });
 
     document.getElementById('ep-delete').addEventListener('click', async () => {
-      if (!confirm(`Delete ${filename}?`)) return;
+      if (!confirm(`Delete ${count} photo${count !== 1 ? 's' : ''}?`)) return;
       try {
         const photosDir = await dirHandle.getDirectoryHandle('photos');
-        try { await photosDir.removeEntry(filename); } catch (e) {}
-        editPhotos = editPhotos.filter(p => p.filename !== filename);
+        for (const fn of editSelected) {
+          try { await photosDir.removeEntry(fn); } catch (e) {}
+        }
+        editPhotos = editPhotos.filter(p => !editSelected.has(p.filename));
+        editSelected.clear();
         await savePhotosJson();
-        selectedEditFilename = null;
-        document.getElementById('edit-panel').innerHTML = '<p class="placeholder">Select a photo to edit</p>';
         renderEditGrid();
+        panel.innerHTML = '<p class="placeholder">Select photos to edit</p>';
       } catch (e) { alert('Error: ' + e.message); }
     });
   }
