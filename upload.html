@@ -333,16 +333,22 @@
       display: none;
     }
 
-    #delete-grid {
+    #edit-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    #edit-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 0.5rem;
-      max-height: 60vh;
+      gap: 0.4rem;
+      max-height: 65vh;
       overflow-y: auto;
     }
 
-    .delete-item {
-      position: relative;
+    .edit-thumb {
       cursor: pointer;
       border-radius: 2px;
       overflow: hidden;
@@ -350,43 +356,91 @@
       transition: border-color 0.15s;
     }
 
-    .delete-item img {
+    .edit-thumb img {
       width: 100%;
       aspect-ratio: 3/2;
       object-fit: cover;
       display: block;
     }
 
-    .delete-item.selected {
-      border-color: var(--red);
-    }
+    .edit-thumb.selected { border-color: var(--accent); }
 
-    .delete-item.selected::after {
-      content: '✕';
-      position: absolute;
-      inset: 0;
-      background: rgba(139,58,58,0.45);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-    }
-
-    .delete-item-label {
-      font-size: 0.65rem;
+    .edit-thumb-label {
+      font-size: 0.62rem;
       color: var(--text-muted);
-      padding: 0.2rem 0.3rem;
+      padding: 0.15rem 0.3rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       background: var(--bg);
     }
 
+    #edit-panel {
+      position: sticky;
+      top: 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1rem;
+    }
+
+    #edit-panel .placeholder {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 2rem 0;
+    }
+
+    #edit-panel img {
+      width: 100%;
+      aspect-ratio: 3/2;
+      object-fit: cover;
+      border-radius: 2px;
+      display: block;
+      margin-bottom: 0.85rem;
+    }
+
+    #edit-panel .field { margin-bottom: 0.75rem; }
+
+    #edit-panel .field label {
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+
+    #edit-panel .field input,
+    #edit-panel .field select {
+      width: 100%;
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.6rem;
+      font-family: inherit;
+      font-size: 0.82rem;
+      border-radius: 2px;
+      appearance: none;
+    }
+
+    #edit-panel .field input:focus,
+    #edit-panel .field select:focus { outline: none; border-color: var(--border-focus); }
+
+    #edit-panel .panel-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    #edit-panel .panel-actions button { flex: 1; }
+
     @media (max-width: 600px) {
       .fields { grid-template-columns: 1fr; }
       #preview-grid { grid-template-columns: repeat(2, 1fr); }
-      #delete-grid { grid-template-columns: repeat(3, 1fr); }
+      #edit-layout { grid-template-columns: 1fr; }
+      #edit-grid { grid-template-columns: repeat(3, 1fr); }
     }
   </style>
 </head>
@@ -470,14 +524,15 @@
   <button class="primary" id="publish-btn" disabled>Add photos &rarr;</button>
 </div>
 
-<!-- Delete section -->
-<div class="card" id="delete-section" style="display:none">
-  <h2>Delete photos</h2>
-  <div id="delete-controls" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-    <span id="delete-count" style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">Click photos to select</span>
-    <button id="delete-btn" class="primary" disabled style="background:var(--red);border-color:var(--red);">Delete selected</button>
+<!-- Edit section -->
+<div class="card" id="edit-section" style="display:none">
+  <h2>Edit / delete photos</h2>
+  <div id="edit-layout">
+    <div id="edit-grid"></div>
+    <div id="edit-panel">
+      <p class="placeholder">Select a photo to edit</p>
+    </div>
   </div>
-  <div id="delete-grid"></div>
 </div>
 
 <script>
@@ -535,7 +590,7 @@
       document.getElementById('meta-section').style.display = 'block';
       document.getElementById('drop-section').style.display = 'block';
       setStep(2);
-      renderDeleteGrid();
+      loadEditPhotos();
     } catch (e) {
       if (e.name !== 'AbortError') {
         document.getElementById('folder-status').textContent = 'Could not open folder: ' + e.message;
@@ -742,33 +797,33 @@
       progressBar.style.width = '100%';
       setStatus(`Done! ${newEntries.length} photo${newEntries.length !== 1 ? 's' : ''} added. Now run: git add . && git commit -m "Add photos" && git push`, 'ok');
       setStep(4);
-      renderDeleteGrid();
+      loadEditPhotos();
     } catch (e) {
       setStatus('Error: ' + e.message, 'err');
       document.getElementById('publish-btn').disabled = false;
     }
   });
 
-  // ── Delete ──
-  let selectedForDelete = new Set();
+  // ── Edit / Delete ──
+  let editPhotos = [];
+  let selectedEditFilename = null;
 
-  async function renderDeleteGrid() {
+  async function loadEditPhotos() {
     if (!dirHandle) return;
-    let existing = [];
     try {
       const jsonHandle = await dirHandle.getFileHandle('photos.json');
-      existing = JSON.parse(await (await jsonHandle.getFile()).text());
+      editPhotos = JSON.parse(await (await jsonHandle.getFile()).text());
     } catch (e) { return; }
+    document.getElementById('edit-section').style.display = 'block';
+    renderEditGrid();
+  }
 
-    document.getElementById('delete-section').style.display = 'block';
-    selectedForDelete.clear();
-    updateDeleteBtn();
-
-    const grid = document.getElementById('delete-grid');
+  function renderEditGrid() {
+    const grid = document.getElementById('edit-grid');
     grid.innerHTML = '';
-    existing.forEach(photo => {
+    editPhotos.forEach(photo => {
       const item = document.createElement('div');
-      item.className = 'delete-item';
+      item.className = 'edit-thumb' + (photo.filename === selectedEditFilename ? ' selected' : '');
       item.dataset.filename = photo.filename;
 
       const img = document.createElement('img');
@@ -777,62 +832,88 @@
       img.loading = 'lazy';
 
       const label = document.createElement('div');
-      label.className = 'delete-item-label';
+      label.className = 'edit-thumb-label';
       label.textContent = photo.location || photo.filename;
-      label.title = `${photo.filename} — ${photo.location || ''}`;
+      label.title = photo.filename;
 
       item.appendChild(img);
       item.appendChild(label);
-      item.addEventListener('click', () => {
-        if (selectedForDelete.has(photo.filename)) {
-          selectedForDelete.delete(photo.filename);
-          item.classList.remove('selected');
-        } else {
-          selectedForDelete.add(photo.filename);
-          item.classList.add('selected');
-        }
-        updateDeleteBtn();
-      });
+      item.addEventListener('click', () => selectEditPhoto(photo.filename));
       grid.appendChild(item);
     });
   }
 
-  function updateDeleteBtn() {
-    const btn = document.getElementById('delete-btn');
-    const count = selectedForDelete.size;
-    btn.disabled = count === 0;
-    btn.textContent = count > 0 ? `Delete ${count} photo${count !== 1 ? 's' : ''}` : 'Delete selected';
-    document.getElementById('delete-count').textContent =
-      count > 0 ? `${count} selected` : 'Click photos to select';
+  function selectEditPhoto(filename) {
+    selectedEditFilename = filename;
+    renderEditGrid();
+    const photo = editPhotos.find(p => p.filename === filename);
+    if (!photo) return;
+
+    const panel = document.getElementById('edit-panel');
+    const [year, month] = (photo.date || '-').split('-');
+
+    panel.innerHTML = `
+      <img src="photos/${photo.filename}" alt="">
+      <div class="field"><label>Country</label>
+        <input id="ep-country" value="${photo.country || ''}"></div>
+      <div class="field"><label>Location</label>
+        <input id="ep-location" value="${photo.location || ''}"></div>
+      <div class="field"><label>Caption</label>
+        <input id="ep-caption" value="${photo.caption || ''}" placeholder="Optional"></div>
+      <div class="field"><label>Month</label>
+        <select id="ep-month">
+          ${['01','02','03','04','05','06','07','08','09','10','11','12']
+            .map(m => `<option value="${m}"${m === month ? ' selected' : ''}>${new Date(2000, +m-1).toLocaleString('default',{month:'long'})}</option>`).join('')}
+        </select></div>
+      <div class="field"><label>Year</label>
+        <select id="ep-year">
+          ${Array.from({length: new Date().getFullYear()-1999}, (_,i) => new Date().getFullYear()-i)
+            .map(y => `<option value="${y}"${String(y) === year ? ' selected' : ''}>${y}</option>`).join('')}
+        </select></div>
+      <div class="panel-actions">
+        <button class="primary" id="ep-save">Save</button>
+        <button id="ep-delete" style="color:var(--red);border-color:var(--red);">Delete</button>
+      </div>`;
+
+    document.getElementById('ep-save').addEventListener('click', async () => {
+      const idx = editPhotos.findIndex(p => p.filename === filename);
+      if (idx === -1) return;
+      const entry = { filename };
+      const country = document.getElementById('ep-country').value.trim();
+      const location = document.getElementById('ep-location').value.trim();
+      const caption = document.getElementById('ep-caption').value.trim();
+      const mo = document.getElementById('ep-month').value;
+      const yr = document.getElementById('ep-year').value;
+      if (country) entry.country = country;
+      if (location) entry.location = location;
+      if (caption) entry.caption = caption;
+      entry.date = `${yr}-${mo}`;
+      editPhotos[idx] = entry;
+      await savePhotosJson();
+      renderEditGrid();
+      document.getElementById('ep-save').textContent = 'Saved ✓';
+    });
+
+    document.getElementById('ep-delete').addEventListener('click', async () => {
+      if (!confirm(`Delete ${filename}?`)) return;
+      try {
+        const photosDir = await dirHandle.getDirectoryHandle('photos');
+        try { await photosDir.removeEntry(filename); } catch (e) {}
+        editPhotos = editPhotos.filter(p => p.filename !== filename);
+        await savePhotosJson();
+        selectedEditFilename = null;
+        document.getElementById('edit-panel').innerHTML = '<p class="placeholder">Select a photo to edit</p>';
+        renderEditGrid();
+      } catch (e) { alert('Error: ' + e.message); }
+    });
   }
 
-  document.getElementById('delete-btn').addEventListener('click', async () => {
-    if (selectedForDelete.size === 0 || !dirHandle) return;
-    if (!confirm(`Permanently delete ${selectedForDelete.size} photo${selectedForDelete.size !== 1 ? 's' : ''}?`)) return;
-
-    try {
-      const photosDir = await dirHandle.getDirectoryHandle('photos');
-      const jsonHandle = await dirHandle.getFileHandle('photos.json');
-      let existing = JSON.parse(await (await jsonHandle.getFile()).text());
-
-      for (const filename of selectedForDelete) {
-        try { await photosDir.removeEntry(filename); } catch (e) {}
-      }
-
-      existing = existing.filter(p => !selectedForDelete.has(p.filename));
-      const writable = await jsonHandle.createWritable();
-      await writable.write(JSON.stringify(existing, null, 2) + '\n');
-      await writable.close();
-
-      const deleted = selectedForDelete.size;
-      selectedForDelete.clear();
-      await renderDeleteGrid();
-      document.getElementById('delete-count').textContent =
-        `Deleted ${deleted} photo${deleted !== 1 ? 's' : ''}. Run: git add . && git commit -m "Delete photos" && git push`;
-    } catch (e) {
-      alert('Error deleting: ' + e.message);
-    }
-  });
+  async function savePhotosJson() {
+    const jsonHandle = await dirHandle.getFileHandle('photos.json', { create: true });
+    const writable = await jsonHandle.createWritable();
+    await writable.write(JSON.stringify(editPhotos, null, 2) + '\n');
+    await writable.close();
+  }
 </script>
 </body>
 </html>
