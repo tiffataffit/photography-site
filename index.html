@@ -97,7 +97,6 @@
     /* ── Tab panels ── */
     .tab-panel { display: none; }
     .tab-panel.active { display: block; flex: 1; }
-    #tab-about.active { display: flex; flex-direction: column; }
 
     /* ── About ── */
     #tab-about {
@@ -137,9 +136,6 @@
 
     /* ── About carousel ── */
     .about-photos-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
       margin-top: 1.5rem;
       padding-top: 1.25rem;
       border-top: 1px solid var(--border);
@@ -154,9 +150,8 @@
     }
 
     .about-carousel-outer {
-      flex: 1;
       display: flex;
-      align-items: stretch;
+      align-items: center;
       gap: 0.5rem;
     }
 
@@ -168,8 +163,7 @@
     }
 
     .carousel-thumb {
-      height: 100%;
-      max-height: 280px;
+      height: 200px;
       width: auto;
       flex-shrink: 0;
       cursor: pointer;
@@ -195,7 +189,6 @@
     }
 
     .carousel-nav:hover { opacity: 1; background: none; }
-    .about-carousel { align-items: stretch; }
 
     .about-text p:last-child { margin-bottom: 0; }
 
@@ -543,14 +536,14 @@
       margin-top: auto;
     }
 
-    #email-link {
+    #email-link, #linkedin-link {
       color: var(--text-muted);
       display: flex;
       align-items: center;
       transition: color 0.2s;
     }
 
-    #email-link:hover { color: var(--accent); }
+    #email-link:hover, #linkedin-link:hover { color: var(--accent); }
 
     /* ── Responsive ── */
     @media (max-width: 900px) {
@@ -693,13 +686,22 @@
 </div>
 
 <footer>
-  <span>&copy; <span id="year"></span></span>
   <a href="mailto:tiffanydw17@gmail.com" id="email-link" aria-label="Email">
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <rect x="2" y="4" width="20" height="16" rx="2"/>
       <path d="m2 7 10 7 10-7"/>
     </svg>
   </a>
+  <a href="https://www.linkedin.com/in/tiffany-d-wang/" id="linkedin-link" aria-label="LinkedIn" target="_blank" rel="noopener">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="2"/>
+      <path d="M7 10v7"/>
+      <path d="M7 7v.01"/>
+      <path d="M11 17v-4a2 2 0 0 1 4 0v4"/>
+      <path d="M11 10v7"/>
+    </svg>
+  </a>
+  <span>&copy; <span id="year"></span> &middot; Built with Claude</span>
 </footer>
 
 <script>
