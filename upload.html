@@ -333,9 +333,60 @@
       display: none;
     }
 
+    #delete-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .delete-item {
+      position: relative;
+      cursor: pointer;
+      border-radius: 2px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .delete-item img {
+      width: 100%;
+      aspect-ratio: 3/2;
+      object-fit: cover;
+      display: block;
+    }
+
+    .delete-item.selected {
+      border-color: var(--red);
+    }
+
+    .delete-item.selected::after {
+      content: '✕';
+      position: absolute;
+      inset: 0;
+      background: rgba(139,58,58,0.45);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .delete-item-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      padding: 0.2rem 0.3rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: var(--bg);
+    }
+
     @media (max-width: 600px) {
       .fields { grid-template-columns: 1fr; }
       #preview-grid { grid-template-columns: repeat(2, 1fr); }
+      #delete-grid { grid-template-columns: repeat(3, 1fr); }
     }
   </style>
 </head>
@@ -419,6 +470,16 @@
   <button class="primary" id="publish-btn" disabled>Add photos &rarr;</button>
 </div>
 
+<!-- Delete section -->
+<div class="card" id="delete-section" style="display:none">
+  <h2>Delete photos</h2>
+  <div id="delete-controls" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+    <span id="delete-count" style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">Click photos to select</span>
+    <button id="delete-btn" class="primary" disabled style="background:var(--red);border-color:var(--red);">Delete selected</button>
+  </div>
+  <div id="delete-grid"></div>
+</div>
+
 <script>
   let dirHandle = null;
   let pendingFiles = []; // {file, objectUrl, caption}
@@ -474,6 +535,7 @@
       document.getElementById('meta-section').style.display = 'block';
       document.getElementById('drop-section').style.display = 'block';
       setStep(2);
+      renderDeleteGrid();
     } catch (e) {
       if (e.name !== 'AbortError') {
         document.getElementById('folder-status').textContent = 'Could not open folder: ' + e.message;
@@ -680,9 +742,95 @@
       progressBar.style.width = '100%';
       setStatus(`Done! ${newEntries.length} photo${newEntries.length !== 1 ? 's' : ''} added. Now run: git add . && git commit -m "Add photos" && git push`, 'ok');
       setStep(4);
+      renderDeleteGrid();
     } catch (e) {
       setStatus('Error: ' + e.message, 'err');
       document.getElementById('publish-btn').disabled = false;
+    }
+  });
+
+  // ── Delete ──
+  let selectedForDelete = new Set();
+
+  async function renderDeleteGrid() {
+    if (!dirHandle) return;
+    let existing = [];
+    try {
+      const jsonHandle = await dirHandle.getFileHandle('photos.json');
+      existing = JSON.parse(await (await jsonHandle.getFile()).text());
+    } catch (e) { return; }
+
+    document.getElementById('delete-section').style.display = 'block';
+    selectedForDelete.clear();
+    updateDeleteBtn();
+
+    const grid = document.getElementById('delete-grid');
+    grid.innerHTML = '';
+    existing.forEach(photo => {
+      const item = document.createElement('div');
+      item.className = 'delete-item';
+      item.dataset.filename = photo.filename;
+
+      const img = document.createElement('img');
+      img.src = `photos/${photo.filename}`;
+      img.alt = '';
+      img.loading = 'lazy';
+
+      const label = document.createElement('div');
+      label.className = 'delete-item-label';
+      label.textContent = photo.location || photo.filename;
+      label.title = `${photo.filename} — ${photo.location || ''}`;
+
+      item.appendChild(img);
+      item.appendChild(label);
+      item.addEventListener('click', () => {
+        if (selectedForDelete.has(photo.filename)) {
+          selectedForDelete.delete(photo.filename);
+          item.classList.remove('selected');
+        } else {
+          selectedForDelete.add(photo.filename);
+          item.classList.add('selected');
+        }
+        updateDeleteBtn();
+      });
+      grid.appendChild(item);
+    });
+  }
+
+  function updateDeleteBtn() {
+    const btn = document.getElementById('delete-btn');
+    const count = selectedForDelete.size;
+    btn.disabled = count === 0;
+    btn.textContent = count > 0 ? `Delete ${count} photo${count !== 1 ? 's' : ''}` : 'Delete selected';
+    document.getElementById('delete-count').textContent =
+      count > 0 ? `${count} selected` : 'Click photos to select';
+  }
+
+  document.getElementById('delete-btn').addEventListener('click', async () => {
+    if (selectedForDelete.size === 0 || !dirHandle) return;
+    if (!confirm(`Permanently delete ${selectedForDelete.size} photo${selectedForDelete.size !== 1 ? 's' : ''}?`)) return;
+
+    try {
+      const photosDir = await dirHandle.getDirectoryHandle('photos');
+      const jsonHandle = await dirHandle.getFileHandle('photos.json');
+      let existing = JSON.parse(await (await jsonHandle.getFile()).text());
+
+      for (const filename of selectedForDelete) {
+        try { await photosDir.removeEntry(filename); } catch (e) {}
+      }
+
+      existing = existing.filter(p => !selectedForDelete.has(p.filename));
+      const writable = await jsonHandle.createWritable();
+      await writable.write(JSON.stringify(existing, null, 2) + '\n');
+      await writable.close();
+
+      const deleted = selectedForDelete.size;
+      selectedForDelete.clear();
+      await renderDeleteGrid();
+      document.getElementById('delete-count').textContent =
+        `Deleted ${deleted} photo${deleted !== 1 ? 's' : ''}. Run: git add . && git commit -m "Delete photos" && git push`;
+    } catch (e) {
+      alert('Error deleting: ' + e.message);
     }
   });
 </script>
