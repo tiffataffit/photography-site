@@ -11,8 +11,9 @@
       padding: 0;
     }
 
-    html {
+    html, body {
       overflow-x: hidden;
+      max-width: 100%;
     }
 
     :root {
@@ -132,9 +133,14 @@
     }
 
 
+    .about-layout {
+      max-width: 100%;
+    }
+
     .about-text {
       flex: 1;
       min-width: 0;
+      overflow: hidden;
     }
 
     .about-text p {
@@ -150,6 +156,8 @@
       margin-top: 1.5rem;
       padding-top: 1.25rem;
       border-top: 1px solid var(--border);
+      max-width: 100%;
+      overflow: hidden;
     }
 
     .about-photos-label {
@@ -649,6 +657,7 @@
       .about-layout { gap: 0.85rem; }
       .about-image { width: 85px; }
       .about-text p { font-size: 0.8rem; }
+      .carousel-thumb { height: 130px; }
 
       /* Projects */
       #tab-projects { padding: 1.5rem 1rem 3rem; }
