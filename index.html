@@ -799,7 +799,7 @@
     const id = btn.dataset.tab;
     showTab(id);
     if (id === 'about') history.replaceState(null, '', '/');
-    else history.replaceState(null, '', `/#${id}`);
+    else history.replaceState(null, '', `/${id}`);
   }));
 
   // ── Photography ──
@@ -1092,9 +1092,9 @@
 
     if (path === '/projects/synesthesia-demo') {
       openVideoLightbox();
-    } else if (hash === '#photography') {
+    } else if (path === '/photography') {
       showTab('photography');
-    } else if (hash === '#projects') {
+    } else if (path === '/projects') {
       showTab('projects');
     }
     // default: about tab (already active)
