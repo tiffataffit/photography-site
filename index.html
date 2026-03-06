@@ -788,10 +788,19 @@
   function showTab(id) {
     tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
     tabPanels.forEach(p => p.classList.toggle('active', p.id === `tab-${id}`));
-    if (id === 'photography' && !photographyInitialized && photosReady) {
-      photographyInitialized = true;
-      populateFilters();
-      applyFilters();
+    if (id === 'photography') {
+      if (!photographyInitialized && photosReady) {
+        photographyInitialized = true;
+        populateFilters();
+        applyFilters();
+      } else {
+        // Recalculate flex-basis for items that loaded while tab was hidden
+        document.querySelectorAll('.photo-item[data-aspect]').forEach(item => {
+          if (parseFloat(item.style.flexBasis) < 10) {
+            item.style.flexBasis = `${item.offsetHeight * parseFloat(item.dataset.aspect)}px`;
+          }
+        });
+      }
     }
   }
 
@@ -876,7 +885,9 @@
     img.loading = 'lazy';
     img.addEventListener('load', () => {
       const aspect = img.naturalWidth / img.naturalHeight;
-      item.style.flexBasis = `${item.offsetHeight * aspect}px`;
+      item.dataset.aspect = aspect;
+      const h = item.offsetHeight || parseFloat(getComputedStyle(item).height) || 170;
+      item.style.flexBasis = `${h * aspect}px`;
       img.classList.add('loaded');
       placeholder.style.display = 'none';
     });
