@@ -857,6 +857,7 @@
 
   let allPhotos = [];
   let filteredPhotos = [];
+  let displayOrder = [];
   let lbIndex = 0;
   let photosReady = false;
   let photographyInitialized = false;
@@ -962,6 +963,7 @@
     const grid = document.getElementById('grid');
     const emptyState = document.getElementById('empty-state');
     grid.querySelectorAll('.month-section').forEach(el => el.remove());
+    displayOrder = [];
 
     if (filteredPhotos.length === 0) {
       emptyState.style.display = 'block';
@@ -1000,7 +1002,11 @@
 
         const photoGrid = document.createElement('div');
         photoGrid.className = 'photo-grid';
-        items.forEach(({ photo, i }) => photoGrid.appendChild(makePhotoItem(photo, i)));
+        items.forEach(({ photo }) => {
+          const displayIdx = displayOrder.length;
+          displayOrder.push(photo);
+          photoGrid.appendChild(makePhotoItem(photo, displayIdx));
+        });
         // Spacer absorbs leftover space in the last row so orphan images don't over-stretch
         const spacer = document.createElement('div');
         spacer.style.flexGrow = '100';
@@ -1043,7 +1049,7 @@
       img.alt = photo.location || '';
       img.loading = 'lazy';
       img.addEventListener('click', () => {
-        filteredPhotos = carouselPhotos;
+        displayOrder = carouselPhotos;
         openLightbox(i);
       });
       container.appendChild(img);
@@ -1082,17 +1088,17 @@
   }
 
   function showLightboxPhoto() {
-    const photo = filteredPhotos[lbIndex];
+    const photo = displayOrder[lbIndex];
     const img = document.getElementById('lightbox-img');
     img.src = `photos/${photo.filename}`;
     img.alt = photo.caption || photo.location || '';
     document.getElementById('lightbox-location').textContent = photo.location || '';
     document.getElementById('lightbox-caption').textContent = photo.caption || '';
-    document.getElementById('lb-counter').textContent = `${lbIndex + 1} / ${filteredPhotos.length}`;
+    document.getElementById('lb-counter').textContent = `${lbIndex + 1} / ${displayOrder.length}`;
   }
 
-  function lbNext() { lbIndex = (lbIndex + 1) % filteredPhotos.length; showLightboxPhoto(); }
-  function lbPrev() { lbIndex = (lbIndex - 1 + filteredPhotos.length) % filteredPhotos.length; showLightboxPhoto(); }
+  function lbNext() { lbIndex = (lbIndex + 1) % displayOrder.length; showLightboxPhoto(); }
+  function lbPrev() { lbIndex = (lbIndex - 1 + displayOrder.length) % displayOrder.length; showLightboxPhoto(); }
 
   document.getElementById('lb-close').addEventListener('click', closeLightbox);
   document.getElementById('lb-next').addEventListener('click', lbNext);
