@@ -836,6 +836,16 @@
   }));
 
   // ── Photography ──
+  const photoObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        if (img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; }
+        photoObserver.unobserve(img);
+      }
+    });
+  }, { rootMargin: '1000px' });
+
   let allPhotos = [];
   let filteredPhotos = [];
   let lbIndex = 0;
@@ -904,9 +914,9 @@
     placeholder.className = 'photo-placeholder';
 
     const img = document.createElement('img');
-    img.src = `photos/${photo.filename}`;
     img.alt = photo.caption || photo.location || '';
-    img.loading = 'lazy';
+    img.dataset.src = `photos/${photo.filename}`;
+    photoObserver.observe(img);
     img.addEventListener('load', () => {
       const aspect = img.naturalWidth / img.naturalHeight;
       item.dataset.aspect = aspect;
