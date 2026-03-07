@@ -501,7 +501,7 @@
 
     /* ── Lightbox ── */
     #lightbox {
-      display: none;
+      display: flex;
       position: fixed;
       inset: 0;
       background: var(--lightbox-bg);
@@ -509,9 +509,17 @@
       align-items: center;
       justify-content: center;
       padding: 2rem;
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      transition: opacity 0.18s ease;
     }
 
-    #lightbox.active { display: flex; }
+    #lightbox.active {
+      opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
+    }
 
     #lightbox-img-wrap {
       position: relative;
