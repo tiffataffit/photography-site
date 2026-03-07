@@ -447,7 +447,14 @@
 <body>
 
 <h1>Upload Photos</h1>
-<p class="subtitle">Open this file locally in Chrome or Edge &mdash; not via the deployed URL</p>
+<p class="subtitle" id="subtitle">Open this file locally in Chrome or Edge &mdash; not via the deployed URL</p>
+
+<!-- Git actions — only shown when running via server.py -->
+<div id="git-actions" style="display:none;max-width:1400px;margin:0 auto 1.25rem;display:none;gap:0.75rem;align-items:center;">
+  <button class="primary" id="git-push-btn">Push to GitHub</button>
+  <button id="deploy-btn">Deploy site</button>
+  <span id="git-status" style="font-size:0.82rem;font-style:italic;color:var(--text-muted);"></span>
+</div>
 
 <div id="compat-warn">
   Your browser may not support the File System Access API. Please use Chrome or Edge to write files directly to your project folder.
@@ -948,6 +955,38 @@
     const writable = await jsonHandle.createWritable();
     await writable.write(JSON.stringify(editPhotos, null, 2) + '\n');
     await writable.close();
+  }
+
+  // ── Git actions (only available when running via server.py) ──
+  if (location.hostname === 'localhost' && location.port === '8765') {
+    const gitActions = document.getElementById('git-actions');
+    gitActions.style.display = 'flex';
+    document.getElementById('subtitle').textContent = 'Running via local server';
+
+    async function gitPost(endpoint, btn, successMsg) {
+      const status = document.getElementById('git-status');
+      btn.disabled = true;
+      status.textContent = 'Running…';
+      status.style.color = 'var(--text-muted)';
+      try {
+        const res = await fetch(endpoint, { method: 'POST' });
+        const data = await res.json();
+        status.textContent = data.ok ? successMsg : data.msg;
+        status.style.color = data.ok ? 'var(--green)' : 'var(--red)';
+      } catch (e) {
+        status.textContent = 'Error: ' + e.message;
+        status.style.color = 'var(--red)';
+      }
+      btn.disabled = false;
+    }
+
+    document.getElementById('git-push-btn').addEventListener('click', function() {
+      gitPost('/git-push', this, 'Pushed to GitHub.');
+    });
+
+    document.getElementById('deploy-btn').addEventListener('click', function() {
+      gitPost('/deploy', this, 'Deploy triggered.');
+    });
   }
 </script>
 </body>
